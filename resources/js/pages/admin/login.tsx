@@ -76,7 +76,7 @@ export default function AdminLogin() {
               </FormItem>
             )}
           />
-          {authError && <p className="text-sm text-danger-600">{authError}</p>}
+          {authError && <p className="text-danger-600">{authError}</p>}
           <Button type="submit" disabled={isSubmitting} className="w-full">
             {isSubmitting ? 'ログイン中...' : 'ログイン'}
           </Button>

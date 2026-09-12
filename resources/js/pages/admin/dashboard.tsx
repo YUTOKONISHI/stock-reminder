@@ -42,7 +42,7 @@ export default function AdminDashboard({
         categories={categories}
       />
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <div className="flex rounded-lg bg-surface shadow">
+        <div className="flex overflow-hidden rounded-xl border border-line bg-surface">
           <CategorySidebar
             categories={categories}
             selectedCategories={selectedCategories}

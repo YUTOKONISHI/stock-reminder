@@ -49,12 +49,10 @@ export default function StockForm({ products, stock }: Props) {
    * 商品マスタが空のときも同じ画面になるため、理由は書き分けない。 */
   if (!isEdit && products.length === 0) {
     return (
-      <AppShell title={title} active="settings">
-        <h1 className="mb-6 text-center text-xl font-bold text-ink md:hidden">{title}</h1>
-
+      <AppShell title={title} active="settings" backHref={stockRoutes.index.url()}>
         <div className="max-w-xl">
-          <p className="text-sm font-medium text-ink">追加できる商品がありません</p>
-          <p className="mt-2 text-sm text-ink-muted">
+          <p className="font-medium text-ink">追加できる商品がありません</p>
+          <p className="mt-2 text-ink-muted">
             ストック数や消費日数を変えるときは、一覧から選んでください。
           </p>
 
@@ -67,18 +65,16 @@ export default function StockForm({ products, stock }: Props) {
   }
 
   return (
-    <AppShell title={title} active="settings">
-      <h1 className="mb-6 text-center text-xl font-bold text-ink md:hidden">{title}</h1>
-
+    <AppShell title={title} active="settings" backHref={stockRoutes.index.url()}>
       <div className="max-w-xl">
         {!isEdit && auth.user.household_size === null && (
-          <div className="mb-4 rounded-lg border border-line bg-primary-50 p-4">
-            <p className="text-sm text-ink">
+          <div className="mb-4 rounded-xl border border-line bg-primary-50 p-4">
+            <p className="text-ink">
               世帯人数を設定すると、消費日数の初期値が人数に合わせて入ります。
             </p>
             <Link
               href={profileRoutes.edit.url()}
-              className="mt-2 inline-block text-sm text-primary-700 underline"
+              className="mt-2 inline-block text-primary-700 underline"
             >
               設定画面へ
             </Link>
@@ -220,10 +216,7 @@ export default function StockForm({ products, stock }: Props) {
               )}
             />
 
-            <div className="space-y-3 pt-2">
-              <Button asChild variant="secondary" className="w-full">
-                <Link href={stockRoutes.index.url()}>キャンセル</Link>
-              </Button>
+            <div className="pt-2">
               <Button type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting ? '保存中...' : '保存'}
               </Button>
@@ -232,8 +225,13 @@ export default function StockForm({ products, stock }: Props) {
         </Form>
 
         {isEdit && (
-          <div className="mt-8 border-t border-line pt-6">
-            <Button type="button" variant="ghost" onClick={remove} className="text-danger-600">
+          <div className="mt-8 border-t border-line pt-8">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={remove}
+              className="border-danger-600 text-danger-600 hover:bg-danger-50"
+            >
               このストックを削除
             </Button>
           </div>

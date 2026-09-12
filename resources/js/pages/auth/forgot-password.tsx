@@ -64,7 +64,7 @@ export default function ForgotPassword() {
             {isSubmitting ? '送信中...' : '仮パスワードを送信'}
           </Button>
           {sent && (
-            <div className="rounded-md bg-primary-50 p-3 text-sm text-ink">
+            <div className="rounded-lg bg-primary-50 p-4 text-ink">
               <p>メールに記載された仮パスワードで、新しいパスワードを設定してください。</p>
               <Link
                 href={resetPassword.url()}
@@ -74,7 +74,7 @@ export default function ForgotPassword() {
               </Link>
             </div>
           )}
-          <div className="mt-4 text-sm">
+          <div className="mt-2 flex justify-center">
             <Link href={login.url()} className="text-primary-700 hover:underline">
               ログインに戻る
             </Link>

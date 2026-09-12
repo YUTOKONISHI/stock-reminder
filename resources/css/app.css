@@ -8,14 +8,35 @@
 
 @theme {
   --font-sans:
-    'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
+    'Zen Kaku Gothic New', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  /* 日付と件数など桁の揃う数字だけに当てる。地の文は和文書体で通す。 */
+  --font-numeric: 'Roboto', ui-sans-serif, system-ui, sans-serif;
+
+  /* 文字サイズ: 16px を基準に4の倍数で 12 / 16 / 20 / 24 / 32 の5段。
+   * sm と lg は shadcn の生成物が使うので、それぞれ base と xl と同値にして残す。
+   * 自分で書くコードでは text-base と text-xl を使う。 */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.75rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.75rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 2rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 2rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2.25rem;
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 2.75rem;
 
   /* ベース: ウォームニュートラル */
   /* --color-canvas と --color-primary-600 は public/app/manifest.webmanifest の
        background_color / theme_color、app.blade.php の theme-color、
-       public/app/offline.html、public/icons/ のアイコン背景と二重管理になっている。
-       変えたときはそれらも直し、アイコンは再生成すること。 */
+       public/app/offline.html、app.tsx の進捗バー、public/icons/ のアイコン背景と
+       二重管理になっている。変えたときはそれらも直し、アイコンは再生成すること。 */
   --color-canvas: #fbfaf7;
   --color-surface: #ffffff;
   --color-line: #e7e3dc; /* 装飾罫線のみ。コントラスト 1.28:1 */
@@ -25,12 +46,20 @@
   --color-disabled: #b8b2a6; /* 無効コントロール専用（SC 1.4.3 対象外） */
 
   /* プライマリ: セージグリーン */
-  --color-primary-50: #f4f7f2;
-  --color-primary-100: #e6ede2;
-  --color-primary-200: #cbdac4;
-  --color-primary-400: #85a37b;
-  --color-primary-600: #547048;
-  --color-primary-700: #435a3a;
+  --color-primary-50: #f3f6f1;
+  --color-primary-100: #e4ece1;
+  --color-primary-200: #c7d9c1;
+  --color-primary-400: #8aa57f;
+  --color-primary-600: #5a7550; /* 白文字 5.13:1 */
+  --color-primary-700: #465c3f; /* 白文字 7.33:1 */
+
+  /* 差し色: テラコッタ。予定日が今日のものと、過ぎたものだけに使う。
+     赤の danger は取り消せない操作に残し、役割を重ねない。
+     accent という名前は使えない。shadcn が淡いホバー地の意味で先に使っており、
+     下の @theme inline の --color-accent と bg-accent-600 が別物のまま同居してしまう。 */
+  --color-urgent-50: #fbf0ec;
+  --color-urgent-600: #b4553a; /* 白文字 4.88:1 */
+  --color-urgent-700: #8f4229; /* 白文字 7.05:1 */
 
   /* ステータス: 暖色は状態表現専用（主色には使わない） */
   --color-danger-50: #fcf0ee;
@@ -40,6 +69,18 @@
   --color-warning-600: #8f5b0b;
   --color-success-600: #4e7b4b;
   --color-info-600: #3f6e8c;
+}
+
+/* Tailwind v4 は border-color の既定を currentColor にしたため、色を書いていない
+ * `border` は文字色（ink）で描かれて黒枠になる。shadcn の生成物は Card・Dialog・
+ * SelectContent で色なしの `border` を使うので、既定を装飾罫線の色に戻す。
+ * v3 では既定が gray-200 で、shadcn はその前提で書かれている。 */
+@layer base {
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-line);
+  }
 }
 
 :root {

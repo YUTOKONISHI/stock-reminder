@@ -133,3 +133,14 @@ Vite の開発サーバとログの追尾がまとめて立ち上がる。
 ```
 
 ESLint、Prettier、`tsc --noEmit`、Pint、PHPStan（level 7）、`artisan test` を順に実行する。
+
+## 素材の帰属
+
+| 素材 | 出所 | ライセンス |
+|---|---|---|
+| 画面内のアイコン | [Font Awesome Free](https://fontawesome.com/) 7 | アイコンは CC BY 4.0、コードは MIT |
+| PWAアイコンと favicon | [lucide](https://lucide.dev/) の `shopping-basket` を改変 | ISC |
+| 和文書体 | [Zen 角ゴシック New](https://fonts.google.com/specimen/Zen+Kaku+Gothic+New) | SIL OFL 1.1 |
+| 欧文書体 | [Roboto](https://fonts.google.com/specimen/Roboto) | SIL OFL 1.1 |
+
+Font Awesome Free のアイコンは CC BY 4.0 のため、表示義務がある。本表がその表示にあたる。

@@ -72,7 +72,7 @@ export function PasswordChangeDialog({ open, onClose }: Props) {
           <DialogTitle>パスワード変更</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label htmlFor="current-password">現在のパスワード</Label>
             <Input
               id="current-password"
@@ -84,7 +84,7 @@ export function PasswordChangeDialog({ open, onClose }: Props) {
               <p className="text-xs text-danger-600">{errors.current_password}</p>
             )}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label htmlFor="new-password">新しいパスワード</Label>
             <Input
               id="new-password"
@@ -94,7 +94,7 @@ export function PasswordChangeDialog({ open, onClose }: Props) {
             />
             {errors.password && <p className="text-xs text-danger-600">{errors.password}</p>}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label htmlFor="confirm-password">パスワード確認</Label>
             <Input
               id="confirm-password"
