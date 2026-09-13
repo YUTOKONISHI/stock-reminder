@@ -14,7 +14,7 @@
         @unless (request()->is('admin', 'admin/*'))
             <link rel="manifest" href="/app/manifest.webmanifest">
             {{-- app.css の --color-primary-600 と同値。片方を変えたら manifest の theme_color も直すこと。 --}}
-            <meta name="theme-color" content="#547048">
+            <meta name="theme-color" content="#5A7550">
         @endunless
 
         @fonts

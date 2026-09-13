@@ -1,4 +1,4 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import profile from '@/routes/profile';
@@ -79,9 +79,7 @@ export default function Profile() {
   }
 
   return (
-    <AppShell title="個人情報の変更" active="settings">
-      <h1 className="mb-6 text-center text-xl font-bold text-ink md:hidden">個人情報の変更</h1>
-
+    <AppShell title="個人情報の変更" active="settings" backHref={settings.index.url()}>
       <div className="max-w-xl">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -175,10 +173,7 @@ export default function Profile() {
               )}
             />
 
-            <div className="space-y-3 pt-2">
-              <Button asChild variant="secondary" className="w-full">
-                <Link href={settings.index.url()}>キャンセル</Link>
-              </Button>
+            <div className="pt-2">
               <Button type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting ? '保存中...' : '保存'}
               </Button>

@@ -109,7 +109,7 @@ export default function Register() {
           <Button type="submit" disabled={isSubmitting} className="w-full">
             {isSubmitting ? '登録中...' : '新規登録'}
           </Button>
-          <div className="mt-4 flex justify-between text-sm">
+          <div className="mt-2 flex justify-center">
             <Link href={login.url()} className="text-primary-700 hover:underline">
               ログインはこちら
             </Link>

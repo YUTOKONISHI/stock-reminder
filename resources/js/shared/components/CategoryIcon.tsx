@@ -1,21 +1,27 @@
-import { CookingPot, CupSoda, Package, SprayCan, Utensils } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import {
+  faBottleWater,
+  faBox,
+  faJar,
+  faSprayCanSparkles,
+  faUtensils,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  食品: Utensils,
-  日用品: SprayCan,
-  飲料: CupSoda,
-  調味料: CookingPot,
+const CATEGORY_ICONS: Record<string, IconDefinition> = {
+  食品: faUtensils,
+  日用品: faSprayCanSparkles,
+  飲料: faBottleWater,
+  調味料: faJar,
 };
 
 type Props = {
   category: string | null | undefined;
-  size?: number;
   className?: string;
 };
 
-export function CategoryIcon({ category, size = 28, className }: Props) {
-  const Icon = (category ? CATEGORY_ICONS[category] : undefined) ?? Package;
+export function CategoryIcon({ category, className }: Props) {
+  const icon = (category ? CATEGORY_ICONS[category] : undefined) ?? faBox;
 
-  return <Icon size={size} className={className} aria-hidden />;
+  return <FontAwesomeIcon icon={icon} className={className} aria-hidden />;
 }

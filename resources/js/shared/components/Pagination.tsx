@@ -1,5 +1,6 @@
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { PaginationMeta } from '@/shared/types/pagination';
 
@@ -27,20 +28,20 @@ export function Pagination({ meta, className }: Props) {
   const next = meta.current_page + 1;
 
   return (
-    <nav aria-label="ページ送り" className={cn('mt-4 flex flex-col items-center gap-2', className)}>
-      <ul className="flex items-center gap-1">
+    <nav aria-label="ページ送り" className={cn('mt-8 flex flex-col items-center gap-2', className)}>
+      <ul className="flex items-center gap-2">
         <li>
           <Arrow
             href={pageUrl(url, previous)}
             disabled={previous < 1}
             label="前のページ"
-            icon={<ChevronLeft size={16} />}
+            icon={<FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />}
           />
         </li>
 
         {pageItems(meta.current_page, meta.last_page).map((item, index) =>
           item === 'gap' ? (
-            <li key={`gap-${index}`} aria-hidden="true" className="px-1 text-sm text-ink-muted">
+            <li key={`gap-${index}`} aria-hidden="true" className="px-2 text-ink-muted">
               …
             </li>
           ) : (
@@ -50,7 +51,7 @@ export function Pagination({ meta, className }: Props) {
                 aria-current={item === meta.current_page ? 'page' : undefined}
                 aria-label={`${item}ページ目`}
                 className={cn(
-                  'flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-sm transition',
+                  'flex h-8 min-w-8 items-center justify-center rounded-md px-2 transition',
                   item === meta.current_page
                     ? 'bg-primary-600 text-white'
                     : 'text-ink hover:bg-primary-50',
@@ -67,7 +68,7 @@ export function Pagination({ meta, className }: Props) {
             href={pageUrl(url, next)}
             disabled={next > meta.last_page}
             label="次のページ"
-            icon={<ChevronRight size={16} />}
+            icon={<FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />}
           />
         </li>
       </ul>
