@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,7 +36,7 @@ class StockController extends Controller
 
     public function edit(Stock $stock): Response
     {
-        abort_if($stock->user_id !== Auth::id(), 403);
+        Gate::authorize('view', $stock);
 
         return Inertia::render('stocks/form', [
             'products' => $this->productsForForm(excludeOwned: false),
@@ -56,7 +57,7 @@ class StockController extends Controller
 
     public function update(UpdateStockRequest $request, Stock $stock): RedirectResponse
     {
-        abort_if($stock->user_id !== Auth::id(), 403);
+        Gate::authorize('update', $stock);
 
         $stock->update([
             ...$request->validated(),
@@ -68,7 +69,7 @@ class StockController extends Controller
 
     public function destroy(Stock $stock): RedirectResponse
     {
-        abort_if($stock->user_id !== Auth::id(), 403);
+        Gate::authorize('delete', $stock);
 
         $stock->delete();
 
@@ -77,7 +78,7 @@ class StockController extends Controller
 
     public function purchase(Stock $stock): RedirectResponse
     {
-        abort_if($stock->user_id !== Auth::id(), 403);
+        Gate::authorize('purchase', $stock);
 
         $stock->update([
             'next_purchase_date' => $stock->calculateNextPurchaseDate(),
