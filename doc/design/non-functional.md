@@ -101,7 +101,7 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 次の鍵の値を `[FILTERED]` に置き換える。
 入れ子になった配列も再帰的にたどる。
 
-`password`、`password_confirmation`、`current_password`、`temporary_password`、`token`、`_token`
+`password`、`password_confirmation`、`current_password`、`temporary_password`、`token`、`_token`、`email`
 
 鍵の一覧は `LogRequest::FILTERED_KEYS` の1箇所にある。
 

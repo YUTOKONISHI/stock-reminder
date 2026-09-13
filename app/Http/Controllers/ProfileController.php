@@ -23,7 +23,7 @@ class ProfileController extends Controller
         UpdatesUserPasswords $updatesPasswords,
     ): RedirectResponse {
         $user = $request->user();
-        $input = $request->all();
+        $input = $request->only(['name', 'household_size', 'current_password', 'password', 'password_confirmation']);
 
         $changesPassword = $request->filled('password');
 
