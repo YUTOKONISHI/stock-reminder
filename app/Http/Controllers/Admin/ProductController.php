@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreProductRequest;
+use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
@@ -35,18 +37,10 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreProductRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'category_id' => ['required', 'exists:categories,id'],
-            'default_consumption_interval_days' => ['required', 'integer', 'min:1'],
-        ]);
-
         Product::create([
-            'name' => $request->name,
-            'category_id' => $request->category_id,
-            'default_consumption_interval_days' => $request->default_consumption_interval_days,
+            ...$request->validated(),
             'created_by' => Auth::guard('admin')->id(),
             'updated_by' => Auth::guard('admin')->id(),
         ]);
@@ -54,18 +48,10 @@ class ProductController extends Controller
         return back();
     }
 
-    public function update(Request $request, Product $product): RedirectResponse
+    public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'category_id' => ['required', 'exists:categories,id'],
-            'default_consumption_interval_days' => ['required', 'integer', 'min:1'],
-        ]);
-
         $product->update([
-            'name' => $request->name,
-            'category_id' => $request->category_id,
-            'default_consumption_interval_days' => $request->default_consumption_interval_days,
+            ...$request->validated(),
             'updated_by' => Auth::guard('admin')->id(),
         ]);
 

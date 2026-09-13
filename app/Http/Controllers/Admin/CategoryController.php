@@ -3,22 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCategoryRequest;
+use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('categories')],
-        ]);
-
         Category::create([
-            'name' => $request->name,
+            ...$request->validated(),
             'created_by' => Auth::guard('admin')->id(),
             'updated_by' => Auth::guard('admin')->id(),
         ]);
@@ -26,14 +22,11 @@ class CategoryController extends Controller
         return back();
     }
 
-    public function update(Request $request, Category $category): RedirectResponse
+    public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('categories')->ignore($category->id)],
-        ]);
 
         $category->update([
-            'name' => $request->name,
+            ...$request->validated(),
             'updated_by' => Auth::guard('admin')->id(),
         ]);
 

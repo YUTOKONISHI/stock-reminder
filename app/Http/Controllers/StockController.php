@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreStockRequest;
+use App\Http\Requests\UpdateStockRequest;
 use App\Models\Product;
 use App\Models\Stock;
 use App\Models\User;
@@ -9,7 +11,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -42,41 +43,23 @@ class StockController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreStockRequest $request): RedirectResponse
     {
-        $request->validate([
-            'product_id' => ['required', 'exists:products,id', Rule::unique('stocks')->where('user_id', Auth::id())],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'consumption_interval_days' => ['required', 'integer', 'min:1'],
-            'next_purchase_date' => ['nullable', 'date_format:Y-m-d'],
-        ], [
-            'product_id.unique' => 'この商品は既に登録されています',
-        ]);
-
         Stock::create([
+            ...$request->validated(),
             'user_id' => Auth::id(),
-            'product_id' => $request->product_id,
-            'quantity' => $request->quantity,
-            'consumption_interval_days' => $request->consumption_interval_days,
             'next_purchase_date' => $this->resolveNextPurchaseDate($request),
         ]);
 
         return to_route('stocks.index');
     }
 
-    public function update(Request $request, Stock $stock): RedirectResponse
+    public function update(UpdateStockRequest $request, Stock $stock): RedirectResponse
     {
         abort_if($stock->user_id !== Auth::id(), 403);
 
-        $request->validate([
-            'quantity' => ['required', 'integer', 'min:1'],
-            'consumption_interval_days' => ['required', 'integer', 'min:1'],
-            'next_purchase_date' => ['nullable', 'date_format:Y-m-d'],
-        ]);
-
         $stock->update([
-            'quantity' => $request->quantity,
-            'consumption_interval_days' => $request->consumption_interval_days,
+            ...$request->validated(),
             'next_purchase_date' => $this->resolveNextPurchaseDate($request),
         ]);
 

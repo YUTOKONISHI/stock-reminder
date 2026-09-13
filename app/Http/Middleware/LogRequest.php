@@ -20,6 +20,7 @@ class LogRequest
         'temporary_password',
         'token',
         '_token',
+        'email',
     ];
 
     private const FILTERED_VALUE = '[FILTERED]';
