@@ -3,7 +3,10 @@
 namespace App\Models;
 
 use Carbon\CarbonImmutable;
+use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,10 +20,31 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $updated_by
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
+ * @property-read Category $category
+ * @property-read Collection<int, Stock> $stocks
+ * @property-read int|null $stocks_count
+ *
+ * @method static \Database\Factories\ProductFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereCategoryId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereDefaultConsumptionIntervalDays($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereUpdatedBy($value)
+ *
+ * @mixin \Eloquent
  */
 #[Fillable('category_id', 'name', 'default_consumption_interval_days', 'created_by', 'updated_by')]
 class Product extends Model
 {
+    /** @use HasFactory<ProductFactory> */
+    use HasFactory;
+
     /** @return BelongsTo<Category, $this> */
     public function category(): BelongsTo
     {
