@@ -262,3 +262,23 @@ it('自分の消費日数とストック数から次回購入予定日を出す'
     expect($stock->calculateNextPurchaseDate())->toBe('2026-10-03');
 });
 ```
+
+## 追記（2026-09-23）：`Actions/Fortify/*` は Feature で見る
+
+「バックエンドの対象 > Feature（HTTP）」の表に挙げた `Actions/Fortify/*` は、単体では書かない。
+
+`UpdateUserProfileInformation` と `UpdateUserPassword` は `ProfileController` が呼ぶ経路がそのまま検証になっている。
+`tests/Feature/ProfileControllerTest.php` で名前と世帯人数の更新、現在のパスワードの照合、失敗時の巻き戻しまで見ているため、
+同じ検証規則を単体で書き直しても内容が重複する。
+
+残る2つは、結線ごと確かめられるHTTPの入口から見る。
+
+| ファイル | 見るところ |
+|---|---|
+| `tests/Feature/RegistrationTest.php` | 登録できる、メールの重複を弾く、パスワードが確認と一致しないと弾く |
+| `tests/Feature/LoginTest.php` | ログインできる、失敗時に `auth_error` へ日本語のメッセージが入る |
+
+`CreateNewUser` は `Fortify::createUsersUsing()` で、`AttemptToAuthenticate` は認証パイプラインで結ばれている。
+クラスを直接呼ぶと、この結線が外れても気づけない。
+
+`PasswordValidationRules` は `CreateNewUser` と `UpdateUserPassword` が使うルールの定義で、両者のテストから間接的に通る。
