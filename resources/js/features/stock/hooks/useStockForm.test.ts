@@ -155,7 +155,7 @@ describe('submit', () => {
     });
 
     expect(router.post).toHaveBeenCalledWith(
-      expect.any(String),
+      '/app/stocks',
       {
         product_id: 10,
         quantity: 2,
@@ -177,7 +177,7 @@ describe('submit', () => {
     });
 
     expect(router.put).toHaveBeenCalledWith(
-      expect.any(String),
+      '/app/stocks/100',
       {
         quantity: 2,
         consumption_interval_days: 14,
@@ -199,7 +199,7 @@ describe('submit', () => {
     });
 
     expect(router.post).toHaveBeenCalledWith(
-      expect.any(String),
+      '/app/stocks',
       {
         product_id: 10,
         quantity: 2,
