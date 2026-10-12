@@ -39,8 +39,8 @@
        二重管理になっている。変えたときはそれらも直し、アイコンは再生成すること。 */
   --color-canvas: #fbfaf7;
   --color-surface: #ffffff;
-  --color-line: #e7e3dc; /* 装飾罫線のみ。コントラスト 1.28:1 */
-  --color-line-strong: #8f8a80; /* 入力欄など操作可能な要素の境界。3.43:1 */
+  --color-line: #d9d2ce; /* 装飾罫線のみ。コントラスト 1.49:1 */
+  --color-line-strong: #85859e; /* 入力欄など操作可能な要素の境界。3.59:1 */
   --color-ink: #2e2b27;
   --color-ink-muted: #6f6a62;
   --color-disabled: #b8b2a6; /* 無効コントロール専用（SC 1.4.3 対象外） */
@@ -48,7 +48,7 @@
   /* プライマリ: セージグリーン */
   --color-primary-50: #f3f6f1;
   --color-primary-100: #e4ece1;
-  --color-primary-200: #c7d9c1;
+  --color-primary-200: #abca9f;
   --color-primary-400: #8aa57f;
   --color-primary-600: #5a7550; /* 白文字 5.13:1 */
   --color-primary-700: #465c3f; /* 白文字 7.33:1 */
@@ -57,9 +57,9 @@
      赤の danger は取り消せない操作に残し、役割を重ねない。
      accent という名前は使えない。shadcn が淡いホバー地の意味で先に使っており、
      下の @theme inline の --color-accent と bg-accent-600 が別物のまま同居してしまう。 */
-  --color-urgent-50: #fbf0ec;
-  --color-urgent-600: #b4553a; /* 白文字 4.88:1 */
-  --color-urgent-700: #8f4229; /* 白文字 7.05:1 */
+  --color-urgent-50: #fbf0eb;
+  --color-urgent-600: #ae5a32; /* 白文字 4.87:1 */
+  --color-urgent-700: #884728; /* 白文字 7.05:1 */
 
   /* ステータス: 暖色は状態表現専用（主色には使わない） */
   --color-danger-50: #fcf0ee;
@@ -68,7 +68,7 @@
   --color-warning-400: #f2b441; /* 塗りに使う場合、上の文字は ink */
   --color-warning-600: #8f5b0b;
   --color-success-600: #4e7b4b;
-  --color-info-600: #3f6e8c;
+  --color-info-600: #646496;
 }
 
 /* Tailwind v4 は border-color の既定を currentColor にしたため、色を書いていない
@@ -96,8 +96,8 @@
  * `shadcn add` が色定義を書き足すことがあるので、実行後は必ず差分を確認する。
  *
  * --input を --border と同じ --color-line にしてはいけない。shadcn は入力欄の枠に
- * --input を使い、--color-line は装飾罫線用で白地に 1.28:1 しかない。
- * 操作可能な要素の境界は --color-line-strong（3.43:1）を使う。 */
+ * --input を使い、--color-line は装飾罫線用で白地に 1.49:1 しかない。
+ * 操作可能な要素の境界は --color-line-strong（3.59:1）を使う。 */
 @theme inline {
   --color-background: var(--color-canvas);
   --color-foreground: var(--color-ink);
