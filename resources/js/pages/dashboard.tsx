@@ -11,11 +11,9 @@ import {
   isWithinDays,
   toDate,
 } from '@/shared/lib/date';
-import type { Product } from '@/shared/types/catalog';
 
 type Props = {
   stocks: Stock[];
-  products: Product[];
 };
 
 const CALENDAR_CLASS_NAMES = {
