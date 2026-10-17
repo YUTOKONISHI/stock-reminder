@@ -204,8 +204,8 @@ describe('unsubscribe', () => {
     });
   });
 
-  it.todo('購読が無ければ何も送らずに off にする', async () => {
-    stubPushEnvironment({ permission: 'default', subscription: pushSubscription() });
+  it('購読が無ければ何も送らずに off にする', async () => {
+    stubPushEnvironment({ permission: 'granted' });
     const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
 
     act(() => {
@@ -213,8 +213,9 @@ describe('unsubscribe', () => {
     });
 
     await waitFor(() => {
-      //expect(router.delete)
       expect(result.current.status).toBe('off');
     });
+
+    expect(router.delete).not.toHaveBeenCalled();
   });
 });
