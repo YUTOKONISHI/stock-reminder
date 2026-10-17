@@ -1,23 +1,191 @@
-import { describe, it } from 'vitest';
+import { router } from '@inertiajs/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Stock } from '@/features/stock/types';
+import type { Category, Product } from '@/shared/types/catalog';
+import Dashboard from './dashboard';
+
+vi.mock('@inertiajs/react', () => ({
+  Head: () => null,
+  Link: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  router: { post: vi.fn(), patch: vi.fn() },
+}));
+
+const DAILY: Category = { id: 1, name: '日用品' };
+
+function product(id: number, name: string, category = DAILY): Product {
+  return {
+    id,
+    name,
+    category_id: category.id,
+    category,
+    default_consumption_interval_days: 7,
+  };
+}
+
+/** 予定日は 'yyyy-MM-dd' で渡す。isWithinDays が文字列のまま比べるため。 */
+function stock(overrides: Partial<Stock> = {}): Stock {
+  return {
+    id: 100,
+    product: product(10, 'ティッシュ'),
+    quantity: 2,
+    consumption_interval_days: 7,
+    next_purchase_date: '2026-09-23',
+    ...overrides,
+  };
+}
+
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-09-05T09:00:00'));
+});
 
 describe('カレンダー', () => {
-  it.todo('予定日は1週間の絞り込みを掛けずに全件へ印を付ける');
+  it('予定日は1週間の絞り込みを掛けずに全件へ印を付ける', () => {
+    render(
+      <Dashboard
+        stocks={[
+          stock({ id: 1, product: product(10, 'ティッシュ'), next_purchase_date: '2026-09-23' }),
+          stock({ id: 2, product: product(11, '洗剤'), next_purchase_date: '2026-10-03' }),
+        ]}
+      />,
+    );
+
+    const cell1 = screen.getByRole('gridcell', { name: '2026年9月23日水曜日' });
+    expect(cell1.className).toContain('before:border-primary-600');
+    const cell2 = screen.getByRole('gridcell', { name: '2026年10月3日土曜日' });
+    expect(cell2.className).toContain('before:border-primary-600');
+  });
 });
 
 describe('次回購入日', () => {
-  it.todo('予定日が過ぎていれば見出しを「買い忘れ」にする');
+  it('予定日が過ぎていれば見出しを「買い忘れ」にする', () => {
+    render(
+      <Dashboard
+        stocks={[
+          stock({ id: 1, product: product(10, 'ティッシュ'), next_purchase_date: '2026-09-04' }),
+          stock({ id: 2, product: product(11, '洗剤'), next_purchase_date: '2026-10-03' }),
+        ]}
+      />,
+    );
 
-  it.todo('過ぎていなければ見出しを「次回購入日」にする');
+    const label = screen.getByText('買い忘れ');
+    expect(label).toBeInTheDocument();
+    const date = screen.getByText('9月4日(金)');
+    expect(date).toBeInTheDocument();
+  });
+
+  it('過ぎていなければ見出しを「次回購入日」にする', () => {
+    render(
+      <Dashboard
+        stocks={[
+          stock({ id: 1, product: product(10, 'ティッシュ'), next_purchase_date: '2026-09-06' }),
+          stock({ id: 2, product: product(11, '洗剤'), next_purchase_date: '2026-10-03' }),
+        ]}
+      />,
+    );
+
+    const label = screen.getByText('次回購入日');
+    expect(label).toBeInTheDocument();
+    const date = screen.getByText('9月6日(日)');
+    expect(date).toBeInTheDocument();
+  });
 });
 
 describe('購入予定品', () => {
-  it.todo('1週間以内のものだけ並べる');
+  it('1週間以内のものだけ並べる', () => {
+    render(
+      <Dashboard
+        stocks={[
+          stock({ id: 1, product: product(10, 'ティッシュ'), next_purchase_date: '2026-09-06' }),
+          stock({ id: 2, product: product(11, '洗剤'), next_purchase_date: '2026-09-07' }),
+          stock({ id: 3, product: product(12, '歯磨き粉'), next_purchase_date: '2026-10-03' }),
+        ]}
+      />,
+    );
 
-  it.todo('件数も1週間以内で数える');
+    const rows = screen.getAllByRole('listitem');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveTextContent('ティッシュ');
+    expect(rows[1]).toHaveTextContent('洗剤');
+  });
 
-  it.todo('1件も無ければその旨を出す');
+  it('件数も1週間以内で数える', () => {
+    render(
+      <Dashboard
+        stocks={[
+          stock({ id: 1, product: product(10, 'ティッシュ'), next_purchase_date: '2026-09-06' }),
+          stock({ id: 2, product: product(11, '洗剤'), next_purchase_date: '2026-09-07' }),
+          stock({ id: 3, product: product(12, '歯磨き粉'), next_purchase_date: '2026-10-03' }),
+        ]}
+      />,
+    );
 
-  it.todo('ストック数1のものを先に出す');
+    expect(screen.getByText('1週間以内').previousElementSibling).toHaveTextContent(/^2$/);
+    expect(screen.getByText('今日まで').previousElementSibling).toHaveTextContent(/^0$/);
+  });
 
-  it.todo('購入ボタンを押すと購入を記録する');
+  it('1件も無ければその旨を出す', () => {
+    render(<Dashboard stocks={[]} />);
+    expect(screen.getByText('1週間以内に購入予定の品はありません')).toBeInTheDocument();
+    expect(screen.getByText('未設定')).toBeInTheDocument();
+  });
+
+  it('ストック数1のものを先に出す', () => {
+    /* Controllerから渡される結果はquantityでソートされている */
+    render(
+      <Dashboard
+        stocks={[
+          stock({
+            id: 1,
+            product: product(11, '洗剤'),
+            quantity: 1,
+            next_purchase_date: '2026-09-07',
+          }),
+          stock({
+            id: 2,
+            product: product(10, 'ティッシュ'),
+            quantity: 3,
+            next_purchase_date: '2026-09-06',
+          }),
+        ]}
+      />,
+    );
+
+    const rows = screen.getAllByRole('listitem');
+
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveTextContent('洗剤');
+    expect(rows[1]).toHaveTextContent('ティッシュ');
+  });
+
+  it('購入ボタンを押すと購入を記録する', () => {
+    render(
+      <Dashboard
+        stocks={[
+          stock({
+            id: 1,
+            product: product(11, '洗剤'),
+            quantity: 1,
+            next_purchase_date: '2026-09-07',
+          }),
+          stock({
+            id: 2,
+            product: product(10, 'ティッシュ'),
+            quantity: 3,
+            next_purchase_date: '2026-09-06',
+          }),
+        ]}
+      />,
+    );
+
+    const button = screen.getByRole('button', { name: '「ティッシュ」を購入済みにする' });
+    fireEvent.click(button);
+
+    expect(router.patch).toHaveBeenCalledWith(
+      '/app/stocks/2/purchase',
+      {},
+      { preserveScroll: true },
+    );
+  });
 });
