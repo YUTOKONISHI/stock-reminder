@@ -282,3 +282,61 @@ it('自分の消費日数とストック数から次回購入予定日を出す'
 クラスを直接呼ぶと、この結線が外れても気づけない。
 
 `PasswordValidationRules` は `CreateNewUser` と `UpdateUserPassword` が使うルールの定義で、両者のテストから間接的に通る。
+
+## 追記（2026-10-18）：一通り書き終えた
+
+計画に挙げた対象をすべて書き、PR #9 で main へ入れた。
+
+| 層 | ファイル | 件数 |
+|---|---|---|
+| Unit | 3 | 7 |
+| Feature | 13 | 112 |
+| フロントエンド | 10 | 95 |
+
+Pest は 119 件（457 アサーション）、Vitest は 95 件である。
+
+`composer ci:check` に `npm run test` を足した（`npm run types:check` の次）。
+`package.json` の `vitest run --passWithNoTests` は `vitest run` に戻した。
+テストが1件も無い間の暫定措置で、ファイルを取り違えて0件になったときは落ちるほうがよい。
+
+### CI でDBを立てた
+
+`.github/workflows/tests.yml` に postgres のサービスコンテナを足した。
+`.env.example` の `DB_HOST=pgsql` は `compose.yaml` のサービス名で、GitHub Actions のランナーからは名前が引けない。
+`Tests` の工程だけ `DB_HOST=127.0.0.1` に向け、イメージは開発環境と同じ `postgres:18-alpine` にした。
+
+Vitest はどのワークフローからも呼ばれていなかったため、`Frontend Tests` の工程も足した。
+
+### ひな形から名前を変えたもの
+
+実装に対応する表示が無く、名前のままでは確かめられないものがあった。
+サーバ側の責務をコンポーネントのテストで追わない、という線でも引き直している。
+
+| ファイル | 前 | 後 | 理由 |
+|---|---|---|---|
+| `ProductTable.test.tsx` | 1件も無ければその旨を出す | 1件も無ければ見出しだけになる | 0件のときの文言が無い |
+| `ProductTable.test.tsx` | 取り消すと元の表示に戻る | 編集中の行は変更と削除を出さない | 取消ボタンが無い |
+| `notifications.test.tsx` | 未読のものだけ並べる | 渡された通知を並べる | 絞り込みは `NotificationLogController` の担当 |
+
+`dashboard.test.tsx` の「ストック数1のものを先に出す」も、並べ替えを決めているのは
+`DashboardController` の `orderByRaw` である。
+コンポーネントのテストで言えるのは「受け取った順を崩さずに描く」ことだけなので、
+そう読める組み合わせ（ストック数1に遅い予定日、ストック数3に早い予定日）を渡している。
+
+### 画面のテストで差し替えたもの
+
+| 対象 | 差し替え方 | 理由 |
+|---|---|---|
+| `@inertiajs/react` | `Head`、`Link`、`usePage`、`router` | `AppShell` と `Pagination` が使う |
+| `sonner` | `toast` と **`Toaster`** | `AppShell` が `Toaster` を置いているので、`toast` だけでは描画が落ちる |
+| `usePushSubscription` | `status` と `subscribe` / `unsubscribe` | フックには専用のテストがある。画面側は4つの状態の見た目だけ見る |
+
+`router` をモックすると `onSuccess` と `onError` が呼ばれない。
+`mock.calls[n][2]` から取り出して自分で叩く。
+`vi.mock` は型を差し替えないので、第3引数は Inertia の `VisitOptions` と見なされる。
+呼び出し側が受け取る形へキャストする関数を1つ置いて済ませた。
+
+### 付随して直したもの
+
+`resources/js/pages/dashboard.tsx` の `products` props を外した。
+`DashboardController` は `stocks` だけを渡し、コンポーネントも読んでいなかった。

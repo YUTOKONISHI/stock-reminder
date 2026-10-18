@@ -132,7 +132,9 @@ Vite の開発サーバとログの追尾がまとめて立ち上がる。
 ./vendor/bin/sail composer ci:check
 ```
 
-ESLint、Prettier、`tsc --noEmit`、Pint、PHPStan（level 7）、`artisan test` を順に実行する。
+ESLint、Prettier、`tsc --noEmit`、Vitest、Pint、PHPStan（level 7）、`artisan test` を順に実行する。
+
+自動テストは Pest 4（Unit 3ファイル、Feature 13ファイル）と Vitest 5（10ファイル）で、合わせて214件ある。
 
 ## 素材の帰属
 

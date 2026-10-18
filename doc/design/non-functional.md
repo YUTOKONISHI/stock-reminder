@@ -177,8 +177,36 @@ Laravel Sail（Docker）で動かす。
 1. `npm run lint:check`（ESLint）
 2. `npm run format:check`（Prettier）
 3. `npm run types:check`（`tsc --noEmit`）
-4. `composer test`（Pint、PHPStan、`artisan test`）
+4. `npm run test`（Vitest）
+5. `composer test`（Pint、PHPStan、`artisan test`）
 
 PHPStan は level 7 で、`app/`、`bootstrap/app.php`、`config/`、`database/`、`routes/` を見る。
+`tests/` は見ない。
 
-自動テストは雛形のままで、機能を覆うものは無い。
+### 自動テスト
+
+| 層 | 道具 | 置き場 | ファイル | 件数 |
+|---|---|---|---|---|
+| Unit | Pest 4 | `tests/Unit/` | 3 | 7 |
+| Feature | Pest 4 | `tests/Feature/` | 13 | 112 |
+| フロントエンド | Vitest 5 | 対象ファイルの隣（`resources/js/**/*.test.ts(x)`） | 10 | 95 |
+
+Unit は DB に触れない算出とログの主体判定を見る。
+Feature は HTTP の入口から通し、`RefreshDatabase` でマイグレーションを流す。
+フロントエンドは jsdom 上で `@testing-library/react` を使い、`@inertiajs/react` と `sonner` を差し替える。
+
+絞り込みと並べ替えはコントローラの担当なので、コンポーネントのテストでは追わない。
+決めた経緯と対象の一覧は `doc/plans/20260912-testing-framework.md` にある。
+
+### CI
+
+GitHub Actions のワークフローは2つある。
+
+| ファイル | 内容 |
+|---|---|
+| `.github/workflows/lint.yml` | Pint、Prettier、ESLint |
+| `.github/workflows/tests.yml` | PHPStan、`tsc`、Vitest、`artisan test`。PHP 8.4 と 8.5 の2通り |
+
+`tests.yml` は postgres のサービスコンテナを立てる。
+`.env.example` の `DB_HOST=pgsql` は `compose.yaml` のサービス名で、ランナーからは名前が引けないため、
+`Tests` の工程だけ `DB_HOST=127.0.0.1` に向けている。
