@@ -77,8 +77,8 @@ Docker が要る。
 Laravel Sail で動かすため、ホストに PHP と Node は要らない。
 
 ```bash
-git clone https://github.com/YUTOKONISHI/w24-output.git
-cd w24-output
+git clone https://github.com/YUTOKONISHI/stock-reminder.git
+cd stock-reminder
 cp .env.example .env
 
 # Sail 本体を入れる

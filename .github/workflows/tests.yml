@@ -18,6 +18,23 @@ jobs:
       matrix:
         php-version: ['8.4', '8.5']
 
+    # Feature テストは RefreshDatabase でマイグレーションを流すため、実物のDBが要る。
+    # 開発環境（compose.yaml）と同じ postgres:18-alpine を使う。
+    services:
+      pgsql:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: sail
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -57,5 +74,15 @@ jobs:
       - name: Run Frontend Type Analysis
         run: npm run types:check
 
+      - name: Frontend Tests
+        run: npm run test
+
+      # .env.example の DB_HOST は compose.yaml のサービス名なので、ここでは解決できない。
       - name: Tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: sail
+          DB_PASSWORD: password
         run: php artisan test

@@ -213,3 +213,72 @@ Notification::assertSentTo($user, PurchaseReminder::class);
 
 `composer test` は pint と phpstan を通してから `artisan test` を走らせる。
 書いている途中は `artisan test` を直に叩くほうが速い。
+
+## 追記（2026-09-19）：Unit のひな形
+
+準備（`ExampleTest` の削除、`tests/Pest.php`、ファクトリ5つ、`HasFactory`）が済んだ。
+「バックエンドの対象」の Unit から `Stock` を例に、ひな形を置く。
+
+置き場は `app/` の階層に合わせ、`tests/Unit/Models/` とする。
+
+### モデルは `new` で作る
+
+Unit では `RefreshDatabase` を付けていないので、マイグレーションが走らずテーブルが無い。
+モデルは `new` に属性を渡して作る。
+
+`Product::factory()->make()` は使えない。
+`make()` は保存しないが、定義に置いた `Category::factory()` や `Admin::factory()` の側は `create()` して ID を取るので、DB に書き込みに行く。
+`withoutParents()` を挟めば避けられるが、属性を2つ3つ渡すだけなら `new` のほうが短い。
+
+### 時刻は `Pest\Laravel\travelTo()` で止める
+
+`$this->travelTo()` でも動くが、エディタ（Intelephense）が `Undefined method 'travelTo'` を出す。
+`it()` に渡すクロージャの `$this` は実行時に Pest が `Tests\TestCase` へ差し替えるもので、静的に読むだけでは型が分からないためである。
+
+`pest-plugin-laravel` の関数版は中で `test()->travelTo()` を呼ぶだけで、動きは変わらない。
+`actingAs()` など `$this` から呼ぶ他のメソッドにも、同じ名前の関数がある。
+
+### `tests/Unit/Models/StockTest.php`
+
+```php
+<?php
+
+use App\Models\Stock;
+use Illuminate\Support\Carbon;
+
+use function Pest\Laravel\travelTo;
+
+beforeEach(function () {
+    travelTo(Carbon::parse('2026-09-12'));
+});
+
+it('次回購入予定日は消費日数とストック数を掛けた日数だけ先になる', function () {
+    expect(Stock::purchaseDateAfter(7, 3))->toBe('2026-10-03');
+});
+
+it('自分の消費日数とストック数から次回購入予定日を出す', function () {
+    $stock = new Stock(['quantity' => 3, 'consumption_interval_days' => 7]);
+
+    expect($stock->calculateNextPurchaseDate())->toBe('2026-10-03');
+});
+```
+
+## 追記（2026-09-23）：`Actions/Fortify/*` は Feature で見る
+
+「バックエンドの対象 > Feature（HTTP）」の表に挙げた `Actions/Fortify/*` は、単体では書かない。
+
+`UpdateUserProfileInformation` と `UpdateUserPassword` は `ProfileController` が呼ぶ経路がそのまま検証になっている。
+`tests/Feature/ProfileControllerTest.php` で名前と世帯人数の更新、現在のパスワードの照合、失敗時の巻き戻しまで見ているため、
+同じ検証規則を単体で書き直しても内容が重複する。
+
+残る2つは、結線ごと確かめられるHTTPの入口から見る。
+
+| ファイル | 見るところ |
+|---|---|
+| `tests/Feature/RegistrationTest.php` | 登録できる、メールの重複を弾く、パスワードが確認と一致しないと弾く |
+| `tests/Feature/LoginTest.php` | ログインできる、失敗時に `auth_error` へ日本語のメッセージが入る |
+
+`CreateNewUser` は `Fortify::createUsersUsing()` で、`AttemptToAuthenticate` は認証パイプラインで結ばれている。
+クラスを直接呼ぶと、この結線が外れても気づけない。
+
+`PasswordValidationRules` は `CreateNewUser` と `UpdateUserPassword` が使うルールの定義で、両者のテストから間接的に通る。
