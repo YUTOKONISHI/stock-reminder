@@ -23,8 +23,9 @@
 
 | 状態 | 意味 |
 |---|---|
-| `unsupported` | Service Worker、`PushManager`、`Notification` のいずれかが無い |
-| `denied` | ブラウザの通知許可が拒否されている |
+| `unsupported` | Service Worker が無い。または単独ウィンドウで開いていて `PushManager` か `Notification` が無い |
+| `needs-install` | Service Worker はあり、単独ウィンドウで開いておらず、`PushManager` が無い（iOS Safari のタブ） |
+| `denied` | 端末またはブラウザの通知許可が拒否されている |
 | `off` | 購読していない |
 | `on` | 購読している |
 
@@ -35,7 +36,10 @@ ONにするときは、通知の許可を求めてから `pushManager.subscribe`
 
 OFFにするときは、`DELETE /app/push-subscriptions` に `endpoint` を送ってから、端末側の購読を解除する。
 
-`unsupported` と `denied` のときはトグルを無効にし、理由を画面に出す。
+単独ウィンドウかどうかは `display-mode` のメディアクエリで、`standalone` か `fullscreen` のどちらかに当たるかを見る。
+
+`unsupported`、`needs-install`、`denied` のときはトグルを無効にし、理由を画面に出す。
+`needs-install` では、理由の代わりにホーム画面への追加の手順を枠で囲んで出す。
 
 ### サーバ側
 

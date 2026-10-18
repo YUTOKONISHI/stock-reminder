@@ -34,6 +34,12 @@ type PushEnvironment = {
   requestedPermission?: NotificationPermission;
   /** 端末がすでに持っている購読。無ければ null。 */
   subscription?: ReturnType<typeof pushSubscription> | null;
+  /** false にすると PushManager を置かず、Service Worker の登録からも外す。 */
+  pushManager?: boolean;
+  /** false にすると Notification を置かない。 */
+  notification?: boolean;
+  /** マニフェストの display のうち、いま開いている形。browser はタブで開いている状態。 */
+  displayMode?: 'browser' | 'standalone' | 'fullscreen';
 };
 
 /**
@@ -44,13 +50,16 @@ function stubPushEnvironment({
   permission = 'default',
   requestedPermission = permission,
   subscription = null,
+  pushManager: hasPushManager = true,
+  notification = true,
+  displayMode = 'browser',
 }: PushEnvironment = {}) {
   const created = pushSubscription();
   const pushManager = {
     getSubscription: vi.fn().mockResolvedValue(subscription),
     subscribe: vi.fn().mockResolvedValue(created),
   };
-  const registration = { pushManager };
+  const registration = hasPushManager ? { pushManager } : {};
   const requestPermission = vi.fn().mockResolvedValue(requestedPermission);
 
   vi.stubGlobal('navigator', {
@@ -59,8 +68,17 @@ function stubPushEnvironment({
       getRegistration: vi.fn().mockResolvedValue(registration),
     },
   });
-  vi.stubGlobal('PushManager', class {});
-  vi.stubGlobal('Notification', { permission, requestPermission });
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: query === `(display-mode: ${displayMode})`,
+  }));
+
+  if (hasPushManager) {
+    vi.stubGlobal('PushManager', class {});
+  }
+
+  if (notification) {
+    vi.stubGlobal('Notification', { permission, requestPermission });
+  }
 
   return { pushManager, requestPermission, created };
 }
@@ -79,16 +97,36 @@ describe('status の判定', () => {
     expect(result.current.status).toBe('unsupported');
   });
 
-  it('PushManager が無ければ unsupported になる', () => {
-    vi.stubGlobal('navigator', {
-      serviceWorker: { getRegistration: vi.fn().mockResolvedValue(undefined) },
-    });
-    vi.stubGlobal('Notification', { permission: 'default' });
+  it('タブで開いていて PushManager が無ければ needs-install になる', () => {
+    stubPushEnvironment({ pushManager: false });
+    const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
 
+    expect(result.current.status).toBe('needs-install');
+  });
+
+  it('タブで開いていて PushManager も Notification も無ければ needs-install になる', () => {
+    stubPushEnvironment({ pushManager: false, notification: false });
+    const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
+
+    expect(result.current.status).toBe('needs-install');
+  });
+
+  it('タブで開いていて Notification だけが無ければ unsupported になる', () => {
+    stubPushEnvironment({ notification: false });
     const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
 
     expect(result.current.status).toBe('unsupported');
   });
+
+  it.each(['standalone', 'fullscreen'] as const)(
+    '%s で開いていて PushManager が無ければ unsupported になる',
+    (displayMode) => {
+      stubPushEnvironment({ pushManager: false, displayMode });
+      const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
+
+      expect(result.current.status).toBe('unsupported');
+    },
+  );
 
   it('通知が拒否されていれば denied になる', () => {
     stubPushEnvironment({ permission: 'denied' });

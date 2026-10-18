@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { toast } from 'sonner';
 import { markNotificationAsRead, markNotificationAsUnread } from '@/features/notification/api';
 import { usePushSubscription } from '@/features/notification/hooks/usePushSubscription';
+import type { PushSubscriptionStatus } from '@/features/notification/hooks/usePushSubscription';
 import type { NotificationLog } from '@/features/notification/types';
 import { Pagination } from '@/shared/components/Pagination';
 import { Button } from '@/shared/components/ui/button';
@@ -11,6 +12,11 @@ import { Switch } from '@/shared/components/ui/switch';
 import { AppShell } from '@/shared/layouts/AppShell';
 import { formatDate } from '@/shared/lib/date';
 import type { Paginated } from '@/shared/types/pagination';
+
+const DISABLED_REASONS: Partial<Record<PushSubscriptionStatus, string>> = {
+  unsupported: 'このブラウザはPush通知に対応していません',
+  denied: '通知がブロックされています。端末またはブラウザの設定から許可してください',
+};
 
 type Props = {
   notifications: Paginated<NotificationLog>;
@@ -24,7 +30,9 @@ export default function Notifications({ notifications, vapidPublicKey }: Props) 
     unsubscribe,
   } = usePushSubscription(vapidPublicKey);
   const subscribed = subscriptionStatus === 'on';
-  const disabled = subscriptionStatus === 'unsupported' || subscriptionStatus === 'denied';
+  const disabled = subscriptionStatus !== 'off' && subscriptionStatus !== 'on';
+  const needsInstall = subscriptionStatus === 'needs-install';
+  const disabledReason = DISABLED_REASONS[subscriptionStatus];
 
   function markAsRead(notification: NotificationLog) {
     markNotificationAsRead(notification.id, () => {
@@ -56,13 +64,26 @@ export default function Notifications({ notifications, vapidPublicKey }: Props) 
               onCheckedChange={(next) => (next ? subscribe() : unsubscribe())}
             />
           </CardContent>
-          {disabled && (
+          {needsInstall && (
             <CardContent>
-              <p className="text-xs text-ink-muted">
-                {subscriptionStatus === 'denied'
-                  ? 'ブラウザの設定で通知がブロックされています。設定から許可してください'
-                  : 'このブラウザはPush通知に対応していません'}
-              </p>
+              <div className="rounded-lg bg-primary-50 p-4 text-sm text-ink">
+                <p className="mb-2 font-medium">ホーム画面に追加すると通知を受け取れます</p>
+                <ol className="list-decimal space-y-1 pl-5">
+                  <li>
+                    Safari
+                    で開き、共有ボタン（または「…」メニューの「共有」）から「ホーム画面に追加」を選ぶ
+                  </li>
+                  <li>追加したアイコンから開き、ここで通知を有効にする</li>
+                </ol>
+                <p className="mt-2 text-xs text-ink-muted">
+                  ホーム画面から開くと、ログインし直しが必要になることがあります
+                </p>
+              </div>
+            </CardContent>
+          )}
+          {disabledReason !== undefined && (
+            <CardContent>
+              <p className="text-xs text-ink-muted">{disabledReason}</p>
             </CardContent>
           )}
         </Card>

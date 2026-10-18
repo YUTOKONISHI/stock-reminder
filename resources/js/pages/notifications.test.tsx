@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { toast } from 'sonner';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { PushSubscriptionStatus } from '@/features/notification/hooks/usePushSubscription';
 import type { NotificationLog } from '@/features/notification/types';
 import type { Paginated } from '@/shared/types/pagination';
 import Notifications from './notifications';
@@ -20,11 +21,9 @@ vi.mock('sonner', () => ({
   Toaster: () => null,
 }));
 
-type PushStatus = 'unsupported' | 'denied' | 'off' | 'on';
-
 /* usePushSubscription には専用のテストがあるので、ここは状態と関数だけ差し替える。
  * status はテストごとに beforeEach で 'off' へ戻す。 */
-let pushStatus: PushStatus = 'off';
+let pushStatus: PushSubscriptionStatus = 'off';
 const subscribe = vi.fn();
 const unsubscribe = vi.fn();
 
@@ -171,7 +170,19 @@ describe('通知スイッチ', () => {
     renderPage();
 
     expect(
-      screen.getByText('ブラウザの設定で通知がブロックされています。設定から許可してください'),
+      screen.getByText('通知がブロックされています。端末またはブラウザの設定から許可してください'),
+    ).toBeInTheDocument();
+  });
+
+  it('ホーム画面への追加が要るときは手順を出してスイッチを無効にする', () => {
+    pushStatus = 'needs-install';
+    renderPage();
+
+    expect(screen.getByRole('switch')).toBeDisabled();
+    expect(screen.getByText('ホーム画面に追加すると通知を受け取れます')).toBeInTheDocument();
+    expect(screen.getByText(/「ホーム画面に追加」を選ぶ/)).toBeInTheDocument();
+    expect(
+      screen.getByText('追加したアイコンから開き、ここで通知を有効にする'),
     ).toBeInTheDocument();
   });
 
