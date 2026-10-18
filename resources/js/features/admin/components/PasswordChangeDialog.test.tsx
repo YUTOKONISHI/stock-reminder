@@ -34,7 +34,7 @@ beforeEach(() => {
 
 describe('PasswordChangeDialog', () => {
   it('新しいパスワードと確認が違えば送らずにエラーを出す', () => {
-    render(<PasswordChangeDialog open onClose={() => { }} />);
+    render(<PasswordChangeDialog open onClose={() => {}} />);
 
     fillPasswords('password', 'password1', 'password2');
 
@@ -42,7 +42,7 @@ describe('PasswordChangeDialog', () => {
   });
 
   it('一致していれば変更を送る', () => {
-    render(<PasswordChangeDialog open onClose={() => { }} />);
+    render(<PasswordChangeDialog open onClose={() => {}} />);
 
     fillPasswords('password', 'password1', 'password1');
 
@@ -72,7 +72,7 @@ describe('PasswordChangeDialog', () => {
   });
 
   it('成功すると入力を空に戻す', () => {
-    render(<PasswordChangeDialog open onClose={() => { }} />);
+    render(<PasswordChangeDialog open onClose={() => {}} />);
 
     fillPasswords('password', 'password1', 'password1');
 
@@ -86,7 +86,7 @@ describe('PasswordChangeDialog', () => {
   });
 
   it('サーバのエラーを項目ごとに出す', () => {
-    render(<PasswordChangeDialog open onClose={() => { }} />);
+    render(<PasswordChangeDialog open onClose={() => {}} />);
 
     fillPasswords('password', 'password1', 'password1');
 
