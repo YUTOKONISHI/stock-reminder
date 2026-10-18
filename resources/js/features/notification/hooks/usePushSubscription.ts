@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { destroyPushSubscription, storePushSubscription } from '../api';
 import type { PushSubscriptionPayload } from '../api';
 
-type PushSubscriptionStatus = 'unsupported' | 'denied' | 'off' | 'on';
+export type PushSubscriptionStatus = 'unsupported' | 'needs-install' | 'denied' | 'off' | 'on';
 
 export function usePushSubscription(vapidPublicKey: string) {
   const [status, setStatus] = useState<PushSubscriptionStatus>(readStatus);
 
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       return;
     }
 
@@ -22,12 +22,12 @@ export function usePushSubscription(vapidPublicKey: string) {
   }, []);
 
   function readStatus(): PushSubscriptionStatus {
-    if (
-      !('serviceWorker' in navigator) ||
-      !('PushManager' in window) ||
-      !('Notification' in window)
-    ) {
+    if (!('serviceWorker' in navigator)) {
       return 'unsupported';
+    }
+
+    if (!('PushManager' in window) || !('Notification' in window)) {
+      return isInstalledWindow() || 'PushManager' in window ? 'unsupported' : 'needs-install';
     }
 
     if (Notification.permission === 'denied') {
@@ -73,6 +73,12 @@ export function usePushSubscription(vapidPublicKey: string) {
     subscribe,
     unsubscribe,
   };
+}
+
+function isInstalledWindow() {
+  return ['standalone', 'fullscreen'].some(
+    (mode) => window.matchMedia(`(display-mode: ${mode})`).matches,
+  );
 }
 
 function urlBase64ToUint8Array(base64: string) {
