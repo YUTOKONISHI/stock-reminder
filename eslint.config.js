@@ -7,177 +7,155 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import typescript from 'typescript-eslint';
 
-const controlStatements = [
-    'if',
-    'return',
-    'for',
-    'while',
-    'do',
-    'switch',
-    'try',
-    'throw',
-];
+const controlStatements = ['if', 'return', 'for', 'while', 'do', 'switch', 'try', 'throw'];
 const paddingAroundControl = [
-    ...controlStatements.flatMap((stmt) => [
-        { blankLine: 'always', prev: '*', next: stmt },
-        { blankLine: 'always', prev: stmt, next: '*' },
-    ]),
+  ...controlStatements.flatMap((stmt) => [
+    { blankLine: 'always', prev: '*', next: stmt },
+    { blankLine: 'always', prev: stmt, next: '*' },
+  ]),
 ];
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-    js.configs.recommended,
-    reactHooks.configs.flat['recommended-latest'],
-    ...typescript.configs.recommended,
-    {
-        ...react.configs.flat.recommended,
-        ...react.configs.flat['jsx-runtime'], // Required for React 17+
-        languageOptions: {
-            globals: {
-                ...globals.browser,
+  js.configs.recommended,
+  reactHooks.configs.flat['recommended-latest'],
+  ...typescript.configs.recommended,
+  {
+    ...react.configs.flat.recommended,
+    ...react.configs.flat['jsx-runtime'], // Required for React 17+
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
+    rules: {
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+      'react/no-unescaped-entities': 'off',
+    },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
+  },
+  {
+    plugins: {
+      import: importPlugin,
+    },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
+        node: true,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          fixStyle: 'separate-type-imports',
+        },
+      ],
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+      'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+      // 依存の向きを pages → features → shared の一方向に固定する。
+      // features 同士の参照も禁じる。共有したいものは shared に上げる。
+      'import/no-restricted-paths': [
+        'error',
+        {
+          basePath: import.meta.dirname,
+          zones: [
+            {
+              target: './resources/js/shared',
+              from: './resources/js/features',
+              message: 'shared は features を参照できません',
             },
-        },
-        rules: {
-            'react/react-in-jsx-scope': 'off',
-            'react/prop-types': 'off',
-            'react/no-unescaped-entities': 'off',
-        },
-        settings: {
-            react: {
-                version: 'detect',
+            {
+              target: './resources/js/shared',
+              from: './resources/js/pages',
+              message: 'shared は pages を参照できません',
             },
-        },
-    },
-    {
-        plugins: {
-            import: importPlugin,
-        },
-        settings: {
-            'import/resolver': {
-                typescript: {
-                    alwaysTryTypes: true,
-                    project: './tsconfig.json',
-                },
-                node: true,
+            {
+              target: './resources/js/features',
+              from: './resources/js/pages',
+              message: 'features は pages を参照できません',
             },
+            {
+              target: './resources/js/features/admin',
+              from: './resources/js/features',
+              except: ['./admin'],
+              message: 'feature をまたぐ参照は禁止です。共有するものは shared に上げてください',
+            },
+            {
+              target: './resources/js/features/auth',
+              from: './resources/js/features',
+              except: ['./auth'],
+              message: 'feature をまたぐ参照は禁止です。共有するものは shared に上げてください',
+            },
+            {
+              target: './resources/js/features/notification',
+              from: './resources/js/features',
+              except: ['./notification'],
+              message: 'feature をまたぐ参照は禁止です。共有するものは shared に上げてください',
+            },
+            {
+              target: './resources/js/features/stock',
+              from: './resources/js/features',
+              except: ['./stock'],
+              message: 'feature をまたぐ参照は禁止です。共有するものは shared に上げてください',
+            },
+          ],
         },
-        rules: {
-            '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/consistent-type-imports': [
-                'error',
-                {
-                    prefer: 'type-imports',
-                    fixStyle: 'separate-type-imports',
-                },
-            ],
-            'import/order': [
-                'error',
-                {
-                    groups: [
-                        'builtin',
-                        'external',
-                        'internal',
-                        'parent',
-                        'sibling',
-                        'index',
-                    ],
-                    alphabetize: {
-                        order: 'asc',
-                        caseInsensitive: true,
-                    },
-                },
-            ],
-            'import/consistent-type-specifier-style': [
-                'error',
-                'prefer-top-level',
-            ],
-            // 依存の向きを pages → features → shared の一方向に固定する。
-            // features 同士の参照も禁じる。共有したいものは shared に上げる。
-            'import/no-restricted-paths': [
-                'error',
-                {
-                    basePath: import.meta.dirname,
-                    zones: [
-                        {
-                            target: './resources/js/shared',
-                            from: './resources/js/features',
-                            message: 'shared は features を参照できません',
-                        },
-                        {
-                            target: './resources/js/shared',
-                            from: './resources/js/pages',
-                            message: 'shared は pages を参照できません',
-                        },
-                        {
-                            target: './resources/js/features',
-                            from: './resources/js/pages',
-                            message: 'features は pages を参照できません',
-                        },
-                        {
-                            target: './resources/js/features/admin',
-                            from: './resources/js/features',
-                            except: ['./admin'],
-                            message: 'feature をまたぐ参照は禁止です。共有するものは shared に上げてください',
-                        },
-                        {
-                            target: './resources/js/features/auth',
-                            from: './resources/js/features',
-                            except: ['./auth'],
-                            message: 'feature をまたぐ参照は禁止です。共有するものは shared に上げてください',
-                        },
-                        {
-                            target: './resources/js/features/notification',
-                            from: './resources/js/features',
-                            except: ['./notification'],
-                            message: 'feature をまたぐ参照は禁止です。共有するものは shared に上げてください',
-                        },
-                        {
-                            target: './resources/js/features/stock',
-                            from: './resources/js/features',
-                            except: ['./stock'],
-                            message: 'feature をまたぐ参照は禁止です。共有するものは shared に上げてください',
-                        },
-                    ],
-                },
-            ],
-        },
+      ],
     },
-    {
-        plugins: {
-            '@stylistic': stylistic,
-        },
-        rules: {
-            '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
-            '@stylistic/padding-line-between-statements': [
-                'error',
-                ...paddingAroundControl,
-            ],
-        },
+  },
+  {
+    plugins: {
+      '@stylistic': stylistic,
     },
-    {
-        ignores: [
-            'vendor',
-            'node_modules',
-            'public',
-            'coverage',
-            'resources/pwa',
-            'bootstrap/ssr',
-            'tailwind.config.js',
-            'vite.config.ts',
-            'resources/js/actions/**',
-            'resources/js/shared/components/ui/*',
-            'resources/js/routes/**',
-            'resources/js/wayfinder/**',
-        ],
+    rules: {
+      '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
+      '@stylistic/padding-line-between-statements': ['error', ...paddingAroundControl],
     },
-    prettier, // Turn off all rules that might conflict with Prettier
-    {
-        plugins: {
-            '@stylistic': stylistic,
-        },
-        rules: {
-            curly: ['error', 'all'],
-            '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
-        },
+  },
+  {
+    ignores: [
+      'vendor',
+      'node_modules',
+      'public',
+      'coverage',
+      'resources/pwa',
+      'bootstrap/ssr',
+      'tailwind.config.js',
+      'vite.config.ts',
+      'resources/js/actions/**',
+      'resources/js/shared/components/ui/*',
+      'resources/js/routes/**',
+      'resources/js/wayfinder/**',
+    ],
+  },
+  prettier, // Turn off all rules that might conflict with Prettier
+  {
+    plugins: {
+      '@stylistic': stylistic,
     },
+    rules: {
+      curly: ['error', 'all'],
+      '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
+    },
+  },
 ];
