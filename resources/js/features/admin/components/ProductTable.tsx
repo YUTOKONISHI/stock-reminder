@@ -1,6 +1,7 @@
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useProductManagement } from '@/features/admin/hooks/useProductManagement';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { Button } from '@/shared/components/ui/button';
 import type { Category } from '@/shared/types/catalog';
 import type { AdminProduct } from '../types';
@@ -135,21 +136,26 @@ export function ProductTable({ products, categories }: Props) {
                       >
                         変更
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={product.stocks_count > 0}
-                        title={
-                          product.stocks_count > 0
-                            ? '利用者のストックに登録されているため削除できません'
-                            : undefined
+                      <ConfirmDialog
+                        title={`「${product.name}」を削除しますか？`}
+                        onConfirm={() => remove(product.id)}
+                        trigger={
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={product.stocks_count > 0}
+                            title={
+                              product.stocks_count > 0
+                                ? '利用者のストックに登録されているため削除できません'
+                                : undefined
+                            }
+                            className="border-danger-600 text-danger-600 hover:bg-danger-50"
+                          >
+                            削除
+                          </Button>
                         }
-                        onClick={() => remove(product.id)}
-                        className="border-danger-600 text-danger-600 hover:bg-danger-50"
-                      >
-                        削除
-                      </Button>
+                      />
                     </div>
                   )}
                 </td>

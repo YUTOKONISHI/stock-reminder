@@ -3,6 +3,7 @@ import { useStockForm } from '@/features/stock/hooks/useStockForm';
 import type { Stock, StockFormProduct } from '@/features/stock/types';
 import profileRoutes from '@/routes/profile';
 import stockRoutes from '@/routes/stocks';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { Button } from '@/shared/components/ui/button';
 import {
   Form,
@@ -226,14 +227,19 @@ export default function StockForm({ products, stock }: Props) {
 
         {isEdit && (
           <div className="mt-8 border-t border-line pt-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={remove}
-              className="border-danger-600 text-danger-600 hover:bg-danger-50"
-            >
-              このストックを削除
-            </Button>
+            <ConfirmDialog
+              title="このストックを削除しますか？"
+              onConfirm={remove}
+              trigger={
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-danger-600 text-danger-600 hover:bg-danger-50"
+                >
+                  このストックを削除
+                </Button>
+              }
+            />
           </div>
         )}
       </div>

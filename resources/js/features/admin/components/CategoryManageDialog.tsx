@@ -1,4 +1,5 @@
 import { useCategoryManagement } from '@/features/admin/hooks/useCategoryManagement';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { Button } from '@/shared/components/ui/button';
 import {
   Dialog,
@@ -66,21 +67,26 @@ export function CategoryManageDialog({ open, onClose, categories }: Props) {
                   <Button type="button" size="sm" onClick={() => edit(category)}>
                     変更
                   </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    disabled={category.products_count > 0}
-                    title={
-                      category.products_count > 0
-                        ? '商品が登録されているため削除できません'
-                        : undefined
+                  <ConfirmDialog
+                    title={`カテゴリ「${category.name}」を削除しますか？`}
+                    onConfirm={() => remove(category.id)}
+                    trigger={
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={category.products_count > 0}
+                        title={
+                          category.products_count > 0
+                            ? '商品が登録されているため削除できません'
+                            : undefined
+                        }
+                        className="text-danger-600 hover:bg-danger-50"
+                      >
+                        削除
+                      </Button>
                     }
-                    className="text-danger-600 hover:bg-danger-50"
-                    onClick={() => remove(category.id)}
-                  >
-                    削除
-                  </Button>
+                  />
                 </div>
               )}
             </li>
