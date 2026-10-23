@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/app/welcome');
 
 Route::prefix('app')->group(function () {
+    Route::redirect('/', '/app/dashboard');
+
     Route::inertia('/welcome', 'welcome')->name('welcome');
 
     Route::inertia('/forgot-password', 'auth/forgot-password')->name('forgot-password');

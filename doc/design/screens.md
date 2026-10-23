@@ -48,6 +48,7 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 
 ```
 /  ──▶ /app/welcome
+/app ──▶ /app/dashboard（未ログインなら /app/login）
             │
             ├─▶ /app/login ──(成功)──▶ /app/dashboard
             │        │
@@ -85,6 +86,7 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 
 | メソッド | URL | ルート名 | 処理 |
 |---|---|---|---|
+| GET | `/app` | なし | `/app/dashboard` へリダイレクト |
 | GET | `/app/welcome` | `welcome` | トップページ |
 | GET | `/app/forgot-password` | `forgot-password` | パスワード忘却画面 |
 | POST | `/app/forgot-password` | `forgot-password.store` | 仮パスワードの発行とメール送信 |
