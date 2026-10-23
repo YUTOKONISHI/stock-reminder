@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $quantity
  * @property int $consumption_interval_days
  * @property CarbonImmutable $next_purchase_date
+ * @property CarbonImmutable|null $last_purchased_on
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
  * @property-read Product $product
@@ -28,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Stock whereConsumptionIntervalDays($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Stock whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Stock whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Stock whereLastPurchasedOn($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Stock whereNextPurchaseDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Stock whereProductId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Stock whereQuantity($value)
@@ -36,7 +38,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @mixin \Eloquent
  */
-#[Fillable('user_id', 'product_id', 'quantity', 'consumption_interval_days', 'next_purchase_date')]
+#[Fillable('user_id', 'product_id', 'quantity', 'consumption_interval_days', 'next_purchase_date', 'last_purchased_on')]
 class Stock extends Model
 {
     /** @use HasFactory<StockFactory> */
@@ -47,6 +49,7 @@ class Stock extends Model
     {
         return [
             'next_purchase_date' => 'date:Y-m-d',
+            'last_purchased_on' => 'date:Y-m-d',
         ];
     }
 

@@ -169,6 +169,7 @@ CREATE TABLE "stocks"(
     "consumption_interval_days" INTEGER NOT NULL,
     "next_purchase_date" TIMESTAMP(0) WITH
         TIME zone NOT NULL,
+        "last_purchased_on" DATE NULL,
         "created_at" TIMESTAMP(0)
     WITH
         TIME zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -195,6 +196,9 @@ ON COLUMN
 COMMENT
 ON COLUMN
     "stocks"."next_purchase_date" IS '次回購入予定日';
+COMMENT
+ON COLUMN
+    "stocks"."last_purchased_on" IS '最終購入日';
 COMMENT
 ON COLUMN
     "stocks"."created_at" IS '作成日付';

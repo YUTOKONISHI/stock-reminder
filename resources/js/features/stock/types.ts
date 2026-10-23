@@ -8,4 +8,5 @@ export type Stock = {
   quantity: number;
   consumption_interval_days: number;
   next_purchase_date: string;
+  last_purchased_on: string | null;
 };

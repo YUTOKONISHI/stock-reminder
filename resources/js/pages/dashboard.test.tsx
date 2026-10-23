@@ -31,6 +31,7 @@ function stock(overrides: Partial<Stock> = {}): Stock {
     quantity: 2,
     consumption_interval_days: 7,
     next_purchase_date: '2026-09-23',
+    last_purchased_on: null,
     ...overrides,
   };
 }
@@ -123,6 +124,49 @@ describe('購入予定品', () => {
 
     expect(screen.getByText('1週間以内').previousElementSibling).toHaveTextContent(/^2$/);
     expect(screen.getByText('今日まで').previousElementSibling).toHaveTextContent(/^0$/);
+  });
+
+  it('購入日から予定日まで1週間以内のものは、購入後は一覧にも件数にも入れない', () => {
+    render(
+      <Dashboard
+        stocks={[
+          stock({
+            id: 1,
+            product: product(10, 'ティッシュ'),
+            next_purchase_date: '2026-09-08',
+            last_purchased_on: '2026-09-05',
+          }),
+          stock({ id: 2, product: product(11, '洗剤'), next_purchase_date: '2026-09-07' }),
+        ]}
+      />,
+    );
+
+    const rows = screen.getAllByRole('listitem');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveTextContent('洗剤');
+    expect(screen.getByText('1週間以内').previousElementSibling).toHaveTextContent(/^1$/);
+    const cell = screen.getByRole('gridcell', { name: '2026年9月8日火曜日' });
+    expect(cell.className).toContain('before:border-primary-600');
+  });
+
+  it('購入後に外したものも、予定日の当日には出す', () => {
+    render(
+      <Dashboard
+        stocks={[stock({ next_purchase_date: '2026-09-05', last_purchased_on: '2026-09-02' })]}
+      />,
+    );
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+  });
+
+  it('購入日から予定日まで1週間を超えるものは、今までどおり1週間前から出す', () => {
+    render(
+      <Dashboard
+        stocks={[stock({ next_purchase_date: '2026-09-10', last_purchased_on: '2026-09-02' })]}
+      />,
+    );
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
   });
 
   it('1件も無ければその旨を出す', () => {

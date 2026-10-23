@@ -145,6 +145,19 @@ describe('update', function () {
 
         expect($stock->refresh()->next_purchase_date->format('Y-m-d'))->toBe('2026-12-01');
     });
+
+    it('購入日の記録を消す', function () {
+        $stock = Stock::factory()->create(['last_purchased_on' => '2026-09-21']);
+
+        actingAs($stock->user)
+            ->put(route('stocks.update', $stock), [
+                'quantity' => 2,
+                'consumption_interval_days' => 7,
+            ])
+            ->assertRedirect(route('stocks.index'));
+
+        expect($stock->refresh()->last_purchased_on)->toBeNull();
+    });
 });
 
 describe('destroy', function () {
@@ -173,6 +186,7 @@ describe('purchase', function () {
 
         expect($stock->refresh())
             ->next_purchase_date->format('Y-m-d')->toBe('2026-10-12')
-            ->quantity->toBe(3);
+            ->quantity->toBe(3)
+            ->last_purchased_on->format('Y-m-d')->toBe('2026-09-21');
     });
 });

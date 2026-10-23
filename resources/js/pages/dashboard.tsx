@@ -5,6 +5,7 @@ import { Calendar } from '@/shared/components/ui/calendar';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { AppShell } from '@/shared/layouts/AppShell';
 import {
+  daysBetween,
   daysUntil,
   formatMonthDayWithWeekday,
   isToday,
@@ -15,6 +16,19 @@ import {
 type Props = {
   stocks: Stock[];
 };
+
+const DUE_WINDOW_DAYS = 7;
+
+/** 購入日から予定日までが DUE_WINDOW_DAYS 以内なら、購入後は予定日の当日まで購入予定品に出さない */
+function isHiddenAfterPurchase(stock: Stock): boolean {
+  if (stock.last_purchased_on === null) {
+    return false;
+  }
+
+  const cycle = daysBetween(stock.last_purchased_on, stock.next_purchase_date);
+
+  return cycle <= DUE_WINDOW_DAYS && daysUntil(stock.next_purchase_date) > 0;
+}
 
 const CALENDAR_CLASS_NAMES = {
   root: 'w-full',
@@ -70,7 +84,10 @@ export default function Dashboard({ stocks }: Props) {
       : null;
 
   /** カレンダーと次回購入日は全件を見る。購入予定品は1週間先までに絞る。 */
-  const dueStocks = stocks.filter((stock) => isWithinDays(stock.next_purchase_date, 7));
+  const dueStocks = stocks.filter(
+    (stock) =>
+      isWithinDays(stock.next_purchase_date, DUE_WINDOW_DAYS) && !isHiddenAfterPurchase(stock),
+  );
 
   return (
     <AppShell title="ダッシュボード" active="dashboard">
