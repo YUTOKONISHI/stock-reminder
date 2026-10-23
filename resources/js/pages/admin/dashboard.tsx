@@ -26,7 +26,7 @@ export default function AdminDashboard({
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="flex h-screen flex-col bg-canvas">
       <Toaster position="top-center" />
       <AdminHeader
         onCategoryManageClick={() => setCategoryDialogOpen(true)}
@@ -41,8 +41,8 @@ export default function AdminDashboard({
         onClose={() => setCategoryDialogOpen(false)}
         categories={categories}
       />
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <div className="flex overflow-hidden rounded-xl border border-line bg-surface">
+      <main className="flex min-h-0 flex-1 flex-col px-4 py-8">
+        <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl border border-line bg-surface">
           <CategorySidebar
             categories={categories}
             selectedCategories={selectedCategories}

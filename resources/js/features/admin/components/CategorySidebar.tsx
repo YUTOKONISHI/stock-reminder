@@ -8,7 +8,7 @@ type Props = {
 
 export function CategorySidebar({ categories, selectedCategories, onToggleCategory }: Props) {
   return (
-    <aside className="w-48 shrink-0 border-r border-line p-4">
+    <aside className="w-48 shrink-0 overflow-y-auto border-r border-line p-4">
       <p className="mb-2 text-xs font-bold text-ink-muted">商品カテゴリー</p>
       <ul className="space-y-2">
         {categories.map((category) => (
