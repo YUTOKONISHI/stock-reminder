@@ -27,6 +27,40 @@
 | Push通知 | Web Push（`laravel-notification-channels/webpush`） |
 | 開発環境 | Laravel Sail（Docker） |
 
+## コンテナ構成
+
+Laravel Sail（Docker Compose）で5つのコンテナを動かす。デプロイ先は未定である。
+
+```mermaid
+flowchart LR
+    browser["ブラウザ / PWA"]
+    push["ブラウザのPushサービス"]
+
+    subgraph compose["Docker Compose"]
+        app["laravel.test<br>Web（画面とリクエスト）"]
+        scheduler["laravel.scheduler<br>毎朝9時に通知を積む"]
+        queue["laravel.queue<br>Push通知を送る"]
+        db[("pgsql<br>データ、セッション、キュー")]
+        mail["mailpit<br>開発用のメール受け口"]
+    end
+
+    browser -->|HTTP| app
+    app --> db
+    scheduler -->|ジョブを積む| db
+    queue -->|ジョブを取り出す| db
+    queue -->|Web Push| push
+    push --> browser
+    app -->|SMTP| mail
+```
+
+| コンテナ | 役割 |
+|---|---|
+| `laravel.test` | 画面の表示とリクエストの処理。仮パスワードのメールもここから送る |
+| `laravel.scheduler` | `schedule:work` で毎朝9時に購入日の通知をキューへ積む |
+| `laravel.queue` | `queue:work` でPush通知を送る。止まっていると通知が届かない |
+| `pgsql` | PostgreSQL。データのほか、セッション、キャッシュ、キューも持つ |
+| `mailpit` | 開発用のメールサーバ。送ったメールを http://localhost:8025 で読む |
+
 ## 機能一覧
 
 ### 一般ユーザー
