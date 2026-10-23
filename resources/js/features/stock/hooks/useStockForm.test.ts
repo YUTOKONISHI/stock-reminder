@@ -39,6 +39,7 @@ function stock(overrides: Partial<Stock> = {}): Stock {
     quantity: 2,
     consumption_interval_days: 7,
     next_purchase_date: '2026-10-01T00:00:00.000000Z',
+    last_purchased_on: null,
     ...overrides,
   };
 }

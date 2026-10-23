@@ -1,7 +1,7 @@
 # データ設計
 
 PostgreSQL を使う。
-図の正本は drawSQL 側にあり、エクスポートは `doc/specifications/drawSQL-pgsql-export-2026-08-28.sql` に置く。
+図の正本は drawSQL 側にあり、エクスポートは `doc/specifications/drawSQL-pgsql-export-2026-10-23.sql` に置く。
 本書はマイグレーションから起こした列の一覧である。
 
 日時列はすべて `timestamptz` で持つ。
@@ -83,12 +83,14 @@ admin ──┬─< categories ──< products ──< stocks >── users ─
 | `quantity` | integer | NOT NULL, 既定 1 | ストック数 |
 | `consumption_interval_days` | integer | NOT NULL | ストック1つあたりの消費日数 |
 | `next_purchase_date` | timestamptz | NOT NULL | 日付として扱う。下記 |
+| `last_purchased_on` | date | NULL可 | ダッシュボードの購入ボタンで購入済みにした日。編集すると NULL に戻る |
 | `created_at` / `updated_at` | timestamptz | NOT NULL | |
 
 `(user_id, product_id)` に一意制約を持つ。
 
 `next_purchase_date` は列の型こそ `timestamptz` だが、値の意味は日付である。
 Eloquent 側で `date:Y-m-d` にキャストしており、画面にもJSONにも `YYYY-MM-DD` で出る。
+`last_purchased_on` も同じキャストで `YYYY-MM-DD` になる。
 
 ### notification_logs（通知履歴）
 

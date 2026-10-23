@@ -45,6 +45,11 @@ export function isWithinDays(value: string, days: number): boolean {
   return value <= format(addDays(new Date(), days), 'yyyy-MM-dd');
 }
 
+/** from から to までの日数。どちらも YYYY-MM-DD */
+export function daysBetween(from: string, to: string): number {
+  return differenceInCalendarDays(parseISO(to), parseISO(from));
+}
+
 /** 今日から value までの日数。過ぎていれば負になる */
 export function daysUntil(value: string): number {
   return differenceInCalendarDays(parseISO(value), new Date());

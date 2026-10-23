@@ -62,6 +62,7 @@ class StockController extends Controller
         $stock->update([
             ...$request->validated(),
             'next_purchase_date' => $this->resolveNextPurchaseDate($request),
+            'last_purchased_on' => null,
         ]);
 
         return to_route('stocks.index');
@@ -82,6 +83,7 @@ class StockController extends Controller
 
         $stock->update([
             'next_purchase_date' => $stock->calculateNextPurchaseDate(),
+            'last_purchased_on' => now()->toDateString(),
         ]);
 
         return to_route('dashboard');
