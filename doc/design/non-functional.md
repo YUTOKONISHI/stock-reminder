@@ -26,10 +26,15 @@ UA でバージョンを読まずに済ませるため、許容している。
 
 ### スコープ
 
-Service Worker は `public/app/sw.js` に置く。
-`/app/sw.js` から配信されるため、スコープは `/app/` になる。
+Service Worker は `resources/pwa/sw.js` に置き、`/app/sw.js` から配信する。
+配信元が `/app/` の下にあるため、スコープは `/app/` になる。
 管理画面はスコープの外にあり、そもそも制御されない。
-「管理画面はPWA化しない」はこの配置だけで担保しており、`fetch` の中で `/admin` を除く処理は無い。
+「管理画面はPWA化しない」はこの配信元だけで担保しており、`fetch` の中で `/admin` を除く処理は無い。
+
+マニフェストとオフライン画面も同じく `resources/pwa/` に置き、`/app/` の下で配信する。
+`public/app/` に置くと、ディレクトリが実在するせいで `/app` へのアクセスが Laravel に届かない。
+配信は `routes/pwa.php` の `PwaController` が受け持つ。
+`web` ミドルウェアを通さないので、取得のたびにセッションを作らない。
 
 一般ユーザーの画面を `/app` の外に出すと、その画面がスコープから外れる。
 ルートを足すときは `routes/web.php` の `app` グループの中に入れる。
@@ -59,7 +64,7 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 
 ### マニフェスト
 
-`public/app/manifest.webmanifest`。
+`resources/pwa/manifest.webmanifest`。`/app/manifest.webmanifest` から配信する。
 `start_url` は `/app/dashboard`、`scope` は `/app/`、表示は `standalone` とする。
 アイコンは `public/icons/` に192、512、マスク可能512の3種を置く。
 

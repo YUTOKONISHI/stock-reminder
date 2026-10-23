@@ -65,7 +65,7 @@ Push通知の配信は Web Push で、日次のスケジューラが起点にな
 | `app/Actions/Fortify/` | Fortify に差し込むアカウント操作。登録、プロフィール更新、パスワード更新、認証失敗時の文言 |
 | `app/Console/Commands/SendPurchaseReminders.php` | 購入予定日の通知を送る日次コマンド |
 | `app/Support/LogContext.php` | ログに書く主体（ガードとID）を返す |
-| `public/app/` | Service Worker、マニフェスト、オフライン画面。`/app/` スコープに置くための配置 |
+| `resources/pwa/` | Service Worker、マニフェスト、オフライン画面。`routes/pwa.php` が `/app/` の下で配信する |
 
 フロントエンドは `resources/js/` の下を役割で分ける。
 

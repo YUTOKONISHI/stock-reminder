@@ -100,7 +100,7 @@ VAPID の公開鍵は `NotificationLogController::index` が `vapidPublicKey` �
 
 ### 端末側の受信
 
-`public/app/sw.js` の `push` ハンドラが受け取り、通知を出す。
+`resources/pwa/sw.js` の `push` ハンドラが受け取り、通知を出す。
 
 - 見出しと本文はペイロードから取る。取れなければ見出しを「買い忘れ防止」にする
 - `tag` を `purchase-reminder` に固定する。同じ日に再送されても通知が積み上がらない

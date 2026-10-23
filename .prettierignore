@@ -2,4 +2,5 @@ resources/js/actions/*
 resources/js/routes/*
 resources/js/shared/components/ui/*
 resources/js/wayfinder/*
+resources/pwa/*
 resources/views/mail/*
