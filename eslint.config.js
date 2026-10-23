@@ -159,6 +159,7 @@ export default [
             'vendor',
             'node_modules',
             'public',
+            'coverage',
             'resources/pwa',
             'bootstrap/ssr',
             'tailwind.config.js',
