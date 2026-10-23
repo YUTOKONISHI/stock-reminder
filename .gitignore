@@ -33,3 +33,5 @@ yarn-error.log
 
 # 他者の著作物を含むため追跡しない
 /.claude/
+/coverage
+/reports
