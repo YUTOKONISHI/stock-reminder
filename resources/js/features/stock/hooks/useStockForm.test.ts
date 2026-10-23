@@ -246,24 +246,11 @@ describe('submit', () => {
 });
 
 describe('remove', () => {
-  it('確認を取り消すと削除しない', () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
-
-    const { result } = renderHook(() => useStockForm({ stock: stock(), products: PRODUCTS }));
-
-    result.current.remove();
-
-    expect(router.delete).not.toHaveBeenCalled();
-  });
-
   it('新規では何もしない', () => {
-    const confirm = vi.spyOn(window, 'confirm');
-
     const { result } = renderHook(() => useStockForm({ stock: null, products: PRODUCTS }));
 
     result.current.remove();
 
-    expect(confirm).not.toHaveBeenCalled();
     expect(router.delete).not.toHaveBeenCalled();
   });
 });

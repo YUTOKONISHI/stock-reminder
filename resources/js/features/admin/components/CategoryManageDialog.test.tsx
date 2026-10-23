@@ -59,10 +59,17 @@ describe('削除', () => {
     expect(deleteButton.title).toBe('商品が登録されているため削除できません');
   });
 
-  it('使われていないカテゴリは削除を送る', () => {
+  it('使われていないカテゴリは確認してから削除を送る', () => {
     renderDialog();
     const rows = screen.getAllByRole('listitem');
     fireEvent.click(within(rows[2]).getByRole('button', { name: '削除' }));
+
+    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+      'カテゴリ「清掃用品」を削除しますか？',
+    );
+    expect(router.delete).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: '削除する' }));
 
     expect(router.delete).toHaveBeenCalledWith('/admin/categories/3', expect.anything());
   });

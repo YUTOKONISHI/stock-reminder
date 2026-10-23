@@ -119,10 +119,6 @@ export function useStockForm({ stock, products }: Params) {
       return;
     }
 
-    if (!window.confirm('このストックを削除します。よろしいですか？')) {
-      return;
-    }
-
     deleteStock(stock.id);
   }
 

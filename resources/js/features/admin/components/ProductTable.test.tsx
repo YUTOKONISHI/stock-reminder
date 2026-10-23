@@ -83,10 +83,15 @@ describe('削除', () => {
     );
   });
 
-  it('使われていない商品は削除を送る', () => {
-    renderTable([product({ id: 7, stocks_count: 0 })]);
+  it('使われていない商品は確認してから削除を送る', () => {
+    renderTable([product({ id: 7, name: '洗剤', stocks_count: 0 })]);
 
     fireEvent.click(within(productRows()[0]).getByRole('button', { name: '削除' }));
+
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('「洗剤」を削除しますか？');
+    expect(router.delete).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: '削除する' }));
 
     expect(router.delete).toHaveBeenCalledWith('/admin/products/7', expect.anything());
   });
