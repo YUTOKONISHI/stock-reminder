@@ -79,6 +79,14 @@
             "@types:check",
             "@php artisan test"
         ],
+        "test:report": [
+            "Composer\\Config::disableProcessTimeout",
+            "rm -rf reports",
+            "npx vitest run --reporter=default --reporter=junit --outputFile.junit=reports/frontend.xml || true",
+            "@php artisan test --log-junit reports/backend.xml || true",
+            "node scripts/test-report.mjs reports/frontend.html React（Vitest）=reports/frontend.xml",
+            "node scripts/test-report.mjs reports/backend.html Laravel（Pest）=reports/backend.xml"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
