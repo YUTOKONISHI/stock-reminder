@@ -10,7 +10,7 @@ type Props = {
 export function AdminHeader({ onCategoryManageClick, onPasswordChangeClick }: Props) {
   return (
     <header className="bg-surface shadow">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+      <div className="flex items-center justify-between px-4 py-4">
         <h1 className="text-xl font-bold text-ink">マスタ画面</h1>
         <div className="flex items-center gap-4">
           <button
