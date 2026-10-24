@@ -1,0 +1,55 @@
+# 秘密情報（APP_KEY、DB の接続情報、VAPID の鍵、メールの認証情報）は fly secrets set で置く。
+
+app = "stock-reminder"
+primary_region = "nrt"
+
+[build]
+  [build.args]
+    VITE_APP_NAME = "ストック管理システム"
+
+[env]
+  APP_NAME = "ストック管理システム"
+  APP_ENV = "production"
+  APP_DEBUG = "false"
+  APP_URL = "https://stock-reminder.fly.dev"
+  APP_TIMEZONE = "Asia/Tokyo"
+  APP_LOCALE = "ja"
+  APP_FALLBACK_LOCALE = "ja"
+  LOG_CHANNEL = "stack"
+  LOG_STACK = "stderr"
+  LOG_REQUEST_STACK = "stderr"
+  DB_CONNECTION = "pgsql"
+  QUEUE_CONNECTION = "sync"
+  SESSION_SECURE_COOKIE = "true"
+  VAPID_SUBJECT = "https://stock-reminder.fly.dev"
+
+[processes]
+  app = ""
+  scheduler = "php artisan schedule:work"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  processes = ["app"]
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/up"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+
+# Fly はプロセスが終了するとマシンを止めるので、schedule:work が落ちたら起こし直させる。
+[[restart]]
+  policy = "always"
+  processes = ["scheduler"]
+
+[deploy]
+  release_command = "php artisan migrate --force"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

@@ -58,6 +58,7 @@ VAPID の公開鍵は `NotificationLogController::index` が `vapidPublicKey` �
 ### 起点
 
 `routes/console.php` のスケジューラが、毎日9時（`Asia/Tokyo`）に `app:send-purchase-reminders` を実行する。
+`onOneServer()` を付けており、スケジューラが複数台あっても実行は1台に限られる。ロックはキャッシュ（`database`）に置く。
 
 ### コマンドの処理
 

@@ -74,6 +74,12 @@ return [
         ],
 
         'request' => [
+            'driver' => 'stack',
+            'channels' => explode(',', (string) env('LOG_REQUEST_STACK', 'request_daily')),
+            'ignore_exceptions' => false,
+        ],
+
+        'request_daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/request.log'),
             'level' => 'debug',

@@ -60,6 +60,18 @@ return [
             'report' => false,
         ],
 
+        // DB のバックアップの置き場（Tigris）。環境変数は fly storage create が secrets に置く名前に合わせている。
+        'backup' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_REGION', 'auto'),
+            'bucket' => env('BUCKET_NAME'),
+            'endpoint' => env('AWS_ENDPOINT_URL_S3'),
+            'throw' => true,
+            'report' => false,
+        ],
+
     ],
 
     /*
