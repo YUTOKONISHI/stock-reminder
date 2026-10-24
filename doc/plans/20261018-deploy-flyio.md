@@ -198,3 +198,12 @@ GitHub Actions から `flyctl deploy` を叩く。
 `php artisan app:create-admin` を足し、本番では `fly ssh console` から実行する。
 パスワードを入力を伏せたプロンプトで受け取るので、シェルの履歴にも secrets にも残らない。
 tinker で手で作る案は手順が記録に残りにくく、`AdminSeeder` で環境変数から読む案は一度しか使わない値が secrets に残り続けるので採らなかった。
+
+## バックアップ（2026-10-24）
+
+`app:backup-database` を毎朝4時に流し、Tigris のバケット `stock-reminder-db-backup` に送る。保持は30日とした。
+復元は `app:restore-database` で行う。本番とは別のデータベースへ戻し、各テーブルの件数が本番と一致することを確かめた。
+
+`fly storage create` が置いた secrets は、`fly secrets list` で Deployed と出るのにマシンへ届かなかった。
+`fly secrets deploy` でも直らず、作成時の出力からキーを読んで `fly secrets set` で置き直した。
+キーを伏せて捨てていたため、最初のバケットは消して作り直した。消した直後の名前は再び使えないので、名前を変えている。

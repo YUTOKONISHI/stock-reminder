@@ -172,6 +172,19 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 
 `/api/*` へのリクエストは例外を JSON で返す設定にしてあるが、該当するルートは無い。
 
+## バックアップ
+
+`app:backup-database` が `pg_dump` のカスタム形式でダンプを取り、`backup` ディスクの `db/YYYYMMDD-HHMMSS.dump` に送る。
+同じ実行の中で、最終更新から30日を過ぎたファイルを消す。
+スケジューラが毎日4時（`Asia/Tokyo`）に `onOneServer()` 付きで実行する。
+
+`backup` ディスクは S3 互換のドライバで、本番は Fly.io の Tigris を指す。
+接続情報は `AWS_ACCESS_KEY_ID`、`AWS_SECRET_ACCESS_KEY`、`AWS_ENDPOINT_URL_S3`、`AWS_REGION`、`BUCKET_NAME` から読む。
+
+`app:restore-database {file?}` が復元する。
+ファイルを省くと一覧を出す。
+`pg_restore` を `--clean --if-exists --single-transaction` で実行し、`--database` で復元先を変えられる。
+
 ## ページ送り
 
 一覧はいずれもサーバ側で切る。
