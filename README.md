@@ -25,26 +25,42 @@
 | DB | PostgreSQL 18 |
 | 認証 | Laravel Fortify |
 | 開発環境 | Laravel Sail（Docker） |
+| インフラ | Fly.io、Cloudflare（DNS、メールの転送）、Resend（メール送信）、Tigris（バックアップ） |
+| CI/CD | GitHub Actions |
 
-## コンテナ構成
+## インフラ構成
+
+本番は Fly.io の東京リージョンで動かしている（https://stock.deployshelf.dev/ ）。
+構成と決めた理由は [計画書](doc/plans/20261018-deploy-flyio.md) にある。
 
 ```mermaid
 flowchart LR
-    browser["ブラウザ / PWA"]
+    user["ブラウザ / PWA"]
 
-    subgraph compose["Docker Compose"]
-        app["laravel.test<br>Web"]
-        scheduler["laravel.scheduler<br>毎朝9時に通知を積む"]
-        queue["laravel.queue<br>Push通知を送る"]
-        db[("pgsql")]
+    dns["Cloudflare<br>DNS"]
+
+    subgraph fly["Fly.io（東京）"]
+        proxy["Fly Proxy<br>HTTPS"]
+        app["app<br>FrankenPHP + Laravel"]
+        scheduler["scheduler<br>毎朝9時に通知、4時にバックアップ"]
+        db[("db<br>PostgreSQL 18")]
+        tigris[("Tigris<br>バックアップ")]
     end
 
-    browser <-->|HTTP| app
-    app --> db
+    resend["Resend<br>メール送信"]
+    push["ブラウザの Push サービス"]
+    gha["GitHub Actions"]
+
+    user -->|名前解決| dns
+    user -->|HTTPS| proxy --> app --> db
     scheduler --> db
-    queue --> db
-    queue -->|Web Push| browser
+    scheduler -->|pg_dump| tigris
+    scheduler -->|Web Push| push --> user
+    app -->|SMTP| resend -->|パスワード再設定| user
+    gha -->|tests が通ったら deploy| fly
 ```
+
+開発環境は Laravel Sail（Docker Compose）で、Web、スケジューラ、キューのワーカー、PostgreSQL を動かす。
 
 ## 機能一覧
 
@@ -58,11 +74,6 @@ flowchart LR
 - **テスト**：Pest、Vitest
 - **静的解析**：PHPStan（level 7）、ESLint、TypeScript
 - **CI**：GitHub Actions で静的解析とテストを実行する
-
-## 本番環境
-
-Fly.io の東京リージョンで動かしている（https://stock.deployshelf.dev/ ）。
-構成と決めた理由は [計画書](doc/plans/20261018-deploy-flyio.md) にある。
 
 ## ドキュメント
 
