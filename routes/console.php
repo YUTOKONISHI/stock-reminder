@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('app:send-purchase-reminders')->dailyAt('09:00')->timezone('Asia/Tokyo')->onOneServer();
+Schedule::command('app:backup-database')->dailyAt('04:00')->timezone('Asia/Tokyo')->onOneServer();

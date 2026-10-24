@@ -35,6 +35,16 @@ RUN npm ci && npm run build
 
 FROM base
 
+# バックアップの pg_dump は DB と同じメジャーバージョンが要る。Debian の標準のリポジトリには 18 が無いので PGDG から入れる。
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client-18 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Fly Proxy が TLS を終端するので、HTTP で待ち受ける。
 ENV SERVER_NAME=:8080
 
