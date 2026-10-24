@@ -192,3 +192,9 @@ GitHub Actions から `flyctl deploy` を叩く。
 - DB のパスワード、`APP_KEY`、VAPID の鍵は生成してそのまま secrets に置いた。手元には残していない
 - メールの配信サービスが決まるまで、`MAIL_MAILER` は未設定（`log`）で、`VAPID_SUBJECT` はアプリの URL にしている
 - 止まっている Web を起こしたときの最初の応答は約2秒だった
+
+## 管理者の作り方（2026-10-24）
+
+`php artisan app:create-admin` を足し、本番では `fly ssh console` から実行する。
+パスワードを入力を伏せたプロンプトで受け取るので、シェルの履歴にも secrets にも残らない。
+tinker で手で作る案は手順が記録に残りにくく、`AdminSeeder` で環境変数から読む案は一度しか使わない値が secrets に残り続けるので採らなかった。
