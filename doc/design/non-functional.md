@@ -233,13 +233,18 @@ Feature は HTTP の入口から通し、`RefreshDatabase` でマイグレーシ
 
 ### CI
 
-GitHub Actions のワークフローは2つある。
+GitHub Actions のワークフローは3つある。
 
 | ファイル | 内容 |
 |---|---|
 | `.github/workflows/lint.yml` | Pint、Prettier、ESLint |
 | `.github/workflows/tests.yml` | PHPStan、`tsc`、Vitest、`artisan test`。PHP 8.4 と 8.5 の2通り |
+| `.github/workflows/deploy.yml` | `main` への push で `tests` が通ったら、`flyctl deploy` で Fly.io にデプロイする |
 
 `tests.yml` は postgres のサービスコンテナを立てる。
 `.env.example` の `DB_HOST=pgsql` は `compose.yaml` のサービス名で、ランナーからは名前が引けないため、
 `Tests` の工程だけ `DB_HOST=127.0.0.1` に向けている。
+
+`deploy.yml` は `workflow_run` で `tests` の完了を待つ。
+`tests` が成功し、きっかけが push のときだけ動く。
+デプロイには secret の `FLY_API_TOKEN` を使う。`stock-reminder` だけを扱えるデプロイ用のトークンで、有効期限は1年である。
