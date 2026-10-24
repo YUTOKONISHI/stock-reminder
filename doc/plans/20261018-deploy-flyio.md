@@ -207,3 +207,12 @@ tinker で手で作る案は手順が記録に残りにくく、`AdminSeeder` �
 `fly storage create` が置いた secrets は、`fly secrets list` で Deployed と出るのにマシンへ届かなかった。
 `fly secrets deploy` でも直らず、作成時の出力からキーを読んで `fly secrets set` で置き直した。
 キーを伏せて捨てていたため、最初のバケットは消して作り直した。消した直後の名前は再び使えないので、名前を変えている。
+
+## GitHub Actions からのデプロイ（2026-10-24）
+
+`deploy.yml` を足した。`workflow_run` で `tests` の完了を待ち、成功したときだけ `flyctl deploy --remote-only` を実行する。
+`lint` の完了は待たない。計画どおり `tests` だけを条件にした。
+`superfly/flyctl-actions/setup-flyctl` は 1.6 の SHA で固定した。1.5 は Node 20 で動くので採らなかった。
+
+トークンは `fly tokens create deploy` で作るアプリ単位のもので、有効期限は1年とした（既定は20年）。
+2027年10月ごろに作り直して `FLY_API_TOKEN` を差し替える。
