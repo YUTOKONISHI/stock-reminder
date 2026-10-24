@@ -21,6 +21,7 @@ primary_region = "nrt"
   DB_CONNECTION = "pgsql"
   QUEUE_CONNECTION = "sync"
   SESSION_SECURE_COOKIE = "true"
+  VAPID_SUBJECT = "https://stock-reminder.fly.dev"
 
 [processes]
   app = ""

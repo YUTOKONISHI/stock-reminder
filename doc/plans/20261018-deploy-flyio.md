@@ -184,3 +184,11 @@ GitHub Actions から `flyctl deploy` を叩く。
 ローカルでイメージを作り、Sail の Postgres につないで、ページと静的ファイルの配信、`X-Forwarded-*` の反映、Cookie の `Secure` 属性、ログの stderr への出力を確かめた。
 
 残りは、DB のアプリ、secrets、バックアップ（`pg_dump` のクライアントはまだイメージに入れていない）、初期データ、GitHub Actions である。
+
+## 本番の作成（2026-10-24）
+
+- アプリは `stock-reminder` と `stock-reminder-db`（`deploy/db/fly.toml`）。どちらも `fly apps create` で作った。`fly launch` は Managed Postgres の作成を勧めるので使わない
+- DB のボリュームは 1GB で、日次スナップショットを5日保持する。公開 IP は割り当てていない
+- DB のパスワード、`APP_KEY`、VAPID の鍵は生成してそのまま secrets に置いた。手元には残していない
+- メールの配信サービスが決まるまで、`MAIL_MAILER` は未設定（`log`）で、`VAPID_SUBJECT` はアプリの URL にしている
+- 止まっている Web を起こしたときの最初の応答は約2秒だった

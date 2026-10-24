@@ -1,0 +1,22 @@
+# 本番の PostgreSQL。アプリ（ルートの fly.toml）とは別の Fly アプリで、外にポートを出さない。
+# アプリからは stock-reminder-db.internal:5432 で繋ぐ。
+# POSTGRES_USER、POSTGRES_PASSWORD、POSTGRES_DB は fly secrets set で置く。
+
+app = "stock-reminder-db"
+primary_region = "nrt"
+kill_timeout = 30
+
+[build]
+  image = "postgres:18-alpine"
+
+# 18 以降のイメージは PGDATA を /var/lib/postgresql/18/docker に置く。
+[mounts]
+  source = "pgdata"
+  destination = "/var/lib/postgresql"
+
+[[restart]]
+  policy = "always"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
