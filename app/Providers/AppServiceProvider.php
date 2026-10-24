@@ -59,5 +59,16 @@ class AppServiceProvider extends ServiceProvider
             ? Password::min(8)->uncompromised()
             : Password::min(8),
         );
+
+        // 変更前の規則（doc/plans/20261025-password-rule.md）。
+        // Password::defaults(fn (): ?Password => app()->isProduction()
+        //     ? Password::min(12)
+        //         ->mixedCase()
+        //         ->letters()
+        //         ->numbers()
+        //         ->symbols()
+        //         ->uncompromised()
+        //     : null,
+        // );
     }
 }
