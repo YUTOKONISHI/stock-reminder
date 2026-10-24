@@ -64,22 +64,6 @@ flowchart LR
 Fly.io の東京リージョンで動かしている（https://stock.deployshelf.dev/ ）。
 構成と決めた理由は [計画書](doc/plans/20261018-deploy-flyio.md) にある。
 
-### DB の復元
-
-バックアップは毎朝4時に Tigris へ送り、30日分を残す。
-コマンドは scheduler のマシンで実行する（`fly status -a stock-reminder` でマシンの ID が分かる）。
-
-```bash
-# バックアップの一覧
-fly ssh console -a stock-reminder --machine <scheduler の ID> -C "php artisan app:restore-database"
-
-# 本番の DB を置き換える（確認が出る）
-fly ssh console -a stock-reminder --machine <scheduler の ID> --pty -C "php artisan app:restore-database 20261024-223620.dump"
-```
-
-`--database=<名前>` を付けると、先に作っておいた別のデータベースへ戻せる。
-本番を置き換える前に中身を確かめたいときに使う。
-
 ## ドキュメント
 
 - [要件定義書](AGENTS.md)

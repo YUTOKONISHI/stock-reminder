@@ -185,6 +185,18 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 ファイルを省くと一覧を出す。
 `pg_restore` を `--clean --if-exists --single-transaction` で実行し、`--database` で復元先を変えられる。
 
+本番では scheduler のマシンで実行する（`fly status -a stock-reminder` でマシンの ID が分かる）。
+
+```bash
+# バックアップの一覧
+fly ssh console -a stock-reminder --machine <scheduler の ID> -C "php artisan app:restore-database"
+
+# 本番の DB を置き換える（確認が出る）
+fly ssh console -a stock-reminder --machine <scheduler の ID> --pty -C "php artisan app:restore-database 20261024-223620.dump"
+```
+
+`--database=<名前>` で、先に作っておいた別のデータベースへ戻せる。本番を置き換える前に中身を確かめたいときに使う。
+
 ## ページ送り
 
 一覧はいずれもサーバ側で切る。
