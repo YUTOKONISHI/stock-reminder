@@ -82,8 +82,11 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 除くのはヘルスチェック（`/up`）と Laravel Boost の開発用エンドポイント（`/_boost/*`）である。
 `/build/*` の静的資産は PHP に届かないため、除外の指定は要らない。
 
-出力先は `request` チャンネルで、`daily` ドライバの `storage/logs/request-YYYY-MM-DD.log` に書く。
+出力先は `request` チャンネルである。
+`stack` ドライバで、束ねるチャンネルを `LOG_REQUEST_STACK` で決める。
+既定は `request_daily` で、`daily` ドライバの `storage/logs/request-YYYY-MM-DD.log` に書く。
 保持日数は `LOG_REQUEST_DAYS`（既定14日）で決める。
+本番（Fly.io）は `stderr` にする。
 
 | 項目 | 中身 |
 |---|---|
