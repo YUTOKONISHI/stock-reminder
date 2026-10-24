@@ -1,4 +1,4 @@
-# 秘密情報（APP_KEY、DB の接続情報、VAPID の鍵、メールの認証情報）は fly secrets set で置く。
+# 秘密情報（APP_KEY、DB の接続情報、VAPID の鍵、Resend の API キー（MAIL_PASSWORD）、Tigris の接続情報）は fly secrets set で置く。
 
 app = "stock-reminder"
 primary_region = "nrt"
@@ -11,7 +11,7 @@ primary_region = "nrt"
   APP_NAME = "ストック管理システム"
   APP_ENV = "production"
   APP_DEBUG = "false"
-  APP_URL = "https://stock-reminder.fly.dev"
+  APP_URL = "https://stock.deployshelf.dev"
   APP_TIMEZONE = "Asia/Tokyo"
   APP_LOCALE = "ja"
   APP_FALLBACK_LOCALE = "ja"
@@ -21,7 +21,12 @@ primary_region = "nrt"
   DB_CONNECTION = "pgsql"
   QUEUE_CONNECTION = "sync"
   SESSION_SECURE_COOKIE = "true"
-  VAPID_SUBJECT = "https://stock-reminder.fly.dev"
+  VAPID_SUBJECT = "mailto:contact@deployshelf.dev"
+  MAIL_MAILER = "smtp"
+  MAIL_HOST = "smtp.resend.com"
+  MAIL_PORT = "587"
+  MAIL_USERNAME = "resend"
+  MAIL_FROM_ADDRESS = "noreply@deployshelf.dev"
 
 [processes]
   app = ""

@@ -216,3 +216,15 @@ tinker で手で作る案は手順が記録に残りにくく、`AdminSeeder` �
 
 トークンは `fly tokens create deploy` で作るアプリ単位のもので、有効期限は1年とした（既定は20年）。
 2027年10月ごろに作り直して `FLY_API_TOKEN` を差し替える。
+
+## 独自ドメインとメール（2026-10-25）
+
+「決めること」の残り2つを決めた。
+
+- **独自ドメインを持つ。** `deployshelf.dev` を Cloudflare Registrar で取り、アプリは `stock.deployshelf.dev` に置く。今後の個人開発も同じドメインのサブドメインに並べる。名前に個人情報を入れないことを条件にした
+- **メールの配信は Resend。** Laravel からは SMTP で送り、パッケージは足さない。送信元は `noreply@deployshelf.dev`
+- 受信は Cloudflare Email Routing で、`contact@deployshelf.dev` を個人の Gmail に転送する。`VAPID_SUBJECT` はこのアドレスにした
+
+Gmail の SMTP は、専用のアカウントを作るか個人のアドレスを利用者に見せることになるので採らなかった。
+
+DNS は Cloudflare に置き、`stock` の A と AAAA はプロキシを切っている。プロキシを通すと Fly が証明書を発行できず、アプリから見える接続元の IP も Cloudflare のものになる。
