@@ -54,14 +54,10 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
-            : null,
+        // 漏洩の確認は Have I Been Pwned に問い合わせるので、本番だけで行う。
+        Password::defaults(fn (): Password => app()->isProduction()
+            ? Password::min(8)->uncompromised()
+            : Password::min(8),
         );
     }
 }
