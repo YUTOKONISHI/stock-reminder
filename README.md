@@ -61,7 +61,7 @@ flowchart LR
 
 ## 本番環境
 
-Fly.io の東京リージョンで動かしている（https://stock-reminder.fly.dev/ ）。
+Fly.io の東京リージョンで動かしている（https://stock.deployshelf.dev/ ）。
 構成と決めた理由は [計画書](doc/plans/20261018-deploy-flyio.md) にある。
 
 ### DB の復元
