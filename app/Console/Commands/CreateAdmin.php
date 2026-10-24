@@ -15,7 +15,8 @@ class CreateAdmin extends Command
 
     public function handle(): int
     {
-        $name = (string) $this->argument('name');
+        /** @var string $name */
+        $name = $this->argument('name');
 
         $validator = Validator::make(
             [

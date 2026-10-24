@@ -18,6 +18,7 @@ class RestoreDatabase extends Command
     public function handle(): int
     {
         $disk = Storage::disk('backup');
+        /** @var string|null $file */
         $file = $this->argument('file');
 
         if ($file === null) {
@@ -36,7 +37,9 @@ class RestoreDatabase extends Command
 
         /** @var array{host: string, port: string|int, database: string, username: string, password: string} $db */
         $db = config('database.connections.pgsql');
-        $target = (string) ($this->option('database') ?? $db['database']);
+        /** @var string|null $database */
+        $database = $this->option('database');
+        $target = $database ?? $db['database'];
 
         if (! $this->option('force') && ! $this->confirm("データベース「{$target}」の中身を db/{$file} で置き換えます。続けますか")) {
             return self::FAILURE;
