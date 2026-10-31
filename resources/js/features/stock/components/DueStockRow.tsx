@@ -1,6 +1,7 @@
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { markStockAsPurchased } from '@/features/stock/api';
+import { useState } from 'react';
+import { PurchaseStockDialog } from '@/features/stock/components/PurchaseStockDialog';
 import type { Stock } from '@/features/stock/types';
 import { CategoryIcon } from '@/shared/components/CategoryIcon';
 import { Button } from '@/shared/components/ui/button';
@@ -24,6 +25,7 @@ function describeDue(days: number): string {
 }
 
 export function DueStockRow({ stock }: Props) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const days = daysUntil(stock.next_purchase_date);
   const isUrgent = days <= 0;
 
@@ -58,11 +60,17 @@ export function DueStockRow({ stock }: Props) {
         type="button"
         variant={isUrgent ? 'urgent' : 'outline'}
         aria-label={`「${stock.product.name}」を購入済みにする`}
-        onClick={() => markStockAsPurchased(stock.id)}
+        onClick={() => setIsDialogOpen(true)}
       >
         <FontAwesomeIcon icon={faCheck} />
         買った
       </Button>
+
+      <PurchaseStockDialog
+        stock={stock}
+        open={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+      />
     </li>
   );
 }
