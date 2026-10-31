@@ -366,3 +366,9 @@ it('パスワードが違えばメールを送らない', function () {
 - `doc/design/auth.md`
 - `doc/design/data-model.md` の削除の制約
 - `doc/design/notification.md` の購読の解除と配信の失敗時の動作
+
+## 追記（2026-11-01）
+
+本番は `QUEUE_CONNECTION=sync` で、`jobs` と `failed_jobs` を使わない。
+上の「キューに積むと `failed_jobs` へメールアドレスが残る」と「キューへ積まれた `PurchaseReminder`」は、`database` で動かす開発環境の話である。
+本番では `ShouldQueue` を付けてもリクエストの中で送られるので、キューは SMTP の応答待ちを避ける手段にならない。

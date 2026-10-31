@@ -138,7 +138,7 @@ Eloquent 側で `date:Y-m-d` にキャストしており、画面にもJSONに�
 |---|---|
 | `sessions` | セッション。`SESSION_DRIVER=database` |
 | `cache` / `cache_locks` | キャッシュ。`CACHE_STORE=database` |
-| `jobs` / `job_batches` / `failed_jobs` | キュー。`QUEUE_CONNECTION=database` |
+| `jobs` / `job_batches` / `failed_jobs` | キュー。開発環境の `QUEUE_CONNECTION=database` で使う。本番は `sync` なので使わない |
 | `password_reset_tokens` | パスワード再設定。仮パスワードのハッシュを入れる（[auth.md](auth.md)） |
 
 ## 削除の制約
