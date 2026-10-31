@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PurchaseStockRequest;
 use App\Http\Requests\StoreStockRequest;
 use App\Http\Requests\UpdateStockRequest;
 use App\Models\Product;
@@ -77,10 +78,11 @@ class StockController extends Controller
         return to_route('stocks.index');
     }
 
-    public function purchase(Stock $stock): RedirectResponse
+    public function purchase(PurchaseStockRequest $request, Stock $stock): RedirectResponse
     {
         Gate::authorize('purchase', $stock);
 
+        $stock->fill($request->validated());
         $stock->update([
             'next_purchase_date' => $stock->calculateNextPurchaseDate(),
             'last_purchased_on' => now()->toDateString(),
