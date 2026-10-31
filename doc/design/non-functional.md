@@ -68,6 +68,19 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 `start_url` は `/app/dashboard`、`scope` は `/app/`、表示は `standalone` とする。
 アイコンは `public/icons/` に192、512、マスク可能512の3種を置く。
 
+### インストールの案内
+
+ダッシュボードで、画面の下に浮かせたカード（`InstallCard`）を出す。スマホでは下部タブの上、PCでは右下に置く。
+
+| 環境 | 中身 |
+|---|---|
+| `beforeinstallprompt` が届いた（Chrome） | ブラウザのダイアログを開くボタン |
+| `needs-install` と同じ条件（iOS Safari のタブ） | ホーム画面への追加の手順 |
+| それ以外 | 出さない |
+
+`beforeinstallprompt` は `app.tsx` で受け取って保持し、ブラウザ既定のインストール案内は抑える。
+「今はしない」か×（手順のカードのみ）で閉じたこと、またはダイアログでキャンセルしたことは `localStorage` に端末単位で記録し、以後は出さない。
+
 ## ログ
 
 ### リクエストログ
