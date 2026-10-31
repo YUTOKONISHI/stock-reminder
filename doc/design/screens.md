@@ -60,7 +60,7 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 /app/dashboard ─┬─▶ /app/stocks ─┬─▶ /app/stocks/create
                 │                └─▶ /app/stocks/{id}/edit
                 ├─▶ /app/notifications
-                └─▶ /app/settings ──▶ /app/settings/profile
+                └─▶ /app/settings ──▶ /app/settings/profile ──(アカウント削除)──▶ /app/login
 ```
 
 ダッシュボード、通知、設定の行き来は共通レイアウト `AppShell` のナビゲーションが担う。
@@ -106,6 +106,7 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 | GET | `/app/settings` | `settings.index` | 設定メニュー |
 | GET | `/app/settings/profile` | `profile.edit` | 個人情報の変更画面 |
 | PUT | `/app/settings/profile` | `profile.update` | 個人情報の更新 |
+| DELETE | `/app/settings/profile` | `profile.destroy` | アカウントの削除 |
 | POST | `/app/push-subscriptions` | `push-subscriptions.store` | Push購読の登録 |
 | DELETE | `/app/push-subscriptions` | `push-subscriptions.destroy` | Push購読の削除 |
 
