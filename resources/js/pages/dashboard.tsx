@@ -1,4 +1,5 @@
 import { ja } from 'date-fns/locale';
+import { InstallCard } from '@/features/install/components/InstallCard';
 import { DueStockRow } from '@/features/stock/components/DueStockRow';
 import type { Stock } from '@/features/stock/types';
 import { Calendar } from '@/shared/components/ui/calendar';
@@ -91,6 +92,8 @@ export default function Dashboard({ stocks }: Props) {
 
   return (
     <AppShell title="ダッシュボード" active="dashboard">
+      <InstallCard />
+
       <Card className="mb-8">
         <CardContent className="flex flex-col gap-2">
           {/* 予定日を過ぎたものがあると、最小値である次回購入日も過去になる。

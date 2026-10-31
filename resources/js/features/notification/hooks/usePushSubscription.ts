@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { needsManualInstall } from '@/shared/lib/displayMode';
 import { destroyPushSubscription, storePushSubscription } from '../api';
 import type { PushSubscriptionPayload } from '../api';
 
@@ -27,7 +28,7 @@ export function usePushSubscription(vapidPublicKey: string) {
     }
 
     if (!('PushManager' in window) || !('Notification' in window)) {
-      return isInstalledWindow() || 'PushManager' in window ? 'unsupported' : 'needs-install';
+      return needsManualInstall() ? 'needs-install' : 'unsupported';
     }
 
     if (Notification.permission === 'denied') {
@@ -73,12 +74,6 @@ export function usePushSubscription(vapidPublicKey: string) {
     subscribe,
     unsubscribe,
   };
-}
-
-function isInstalledWindow() {
-  return ['standalone', 'fullscreen'].some(
-    (mode) => window.matchMedia(`(display-mode: ${mode})`).matches,
-  );
 }
 
 function urlBase64ToUint8Array(base64: string) {

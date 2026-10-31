@@ -1,6 +1,7 @@
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { toast } from 'sonner';
+import { AddToHomeScreenSteps } from '@/features/install/components/AddToHomeScreenSteps';
 import { markNotificationAsRead, markNotificationAsUnread } from '@/features/notification/api';
 import { usePushSubscription } from '@/features/notification/hooks/usePushSubscription';
 import type { PushSubscriptionStatus } from '@/features/notification/hooks/usePushSubscription';
@@ -67,17 +68,10 @@ export default function Notifications({ notifications, vapidPublicKey }: Props) 
           {needsInstall && (
             <CardContent>
               <div className="rounded-lg bg-primary-50 p-4 text-sm text-ink">
-                <p className="mb-2 font-medium">ホーム画面に追加すると通知を受け取れます</p>
-                <ol className="list-decimal space-y-1 pl-5">
-                  <li>
-                    Safari
-                    で開き、共有ボタン（または「…」メニューの「共有」）から「ホーム画面に追加」を選ぶ
-                  </li>
-                  <li>追加したアイコンから開き、ここで通知を有効にする</li>
-                </ol>
-                <p className="mt-2 text-xs text-ink-muted">
-                  ホーム画面から開くと、ログインし直しが必要になることがあります
-                </p>
+                <AddToHomeScreenSteps
+                  title="ホーム画面に追加すると通知を受け取れます"
+                  openStep="追加したアイコンから開き、ここで通知を有効にする"
+                />
               </div>
             </CardContent>
           )}
