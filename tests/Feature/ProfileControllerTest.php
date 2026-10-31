@@ -1,10 +1,17 @@
 <?php
 
+use App\Models\NotificationLog;
+use App\Models\Stock;
 use App\Models\User;
+use App\Notifications\AccountDeleted;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\assertDatabaseMissing;
+use function Pest\Laravel\assertGuest;
+use function Pest\Laravel\delete;
 use function Pest\Laravel\get;
 use function Pest\Laravel\put;
 
@@ -138,6 +145,91 @@ describe('update', function () {
     });
 });
 
+describe('destroy', function () {
+    it('正しいパスワードなら、ユーザーと紐づくレコードを消してログアウトする', function () {
+        $user = User::findOrFail(Auth::guard('web')->id());
+        $stock = Stock::factory()->for($user)->create();
+        $log = NotificationLog::factory()->for($user)->create();
+        $user->updatePushSubscription('https://push.example.com/1');
+        DB::table('password_reset_tokens')->insert([
+            'email' => $user->email,
+            'token' => 'token',
+            'created_at' => now(),
+        ]);
+        DB::table('sessions')->insert([
+            'id' => 'other-device',
+            'user_id' => $user->id,
+            'payload' => '',
+            'last_activity' => now()->timestamp,
+        ]);
+
+        delete(route('profile.destroy'), ['password' => 'password'])
+            ->assertValid()
+            ->assertRedirect(route('login'));
+
+        assertGuest('web');
+        assertDatabaseMissing('users', ['id' => $user->id]);
+        assertDatabaseMissing('stocks', ['id' => $stock->id]);
+        assertDatabaseMissing('notification_logs', ['id' => $log->id]);
+        assertDatabaseMissing('push_subscriptions', ['subscribable_id' => $user->id]);
+        assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
+        assertDatabaseMissing('sessions', ['user_id' => $user->id]);
+    });
+
+    it('パスワードが違えば弾き、何も消さない', function () {
+        $user = User::findOrFail(Auth::guard('web')->id());
+        $stock = Stock::factory()->for($user)->create();
+
+        delete(route('profile.destroy'), ['password' => 'dummy'])
+            ->assertInvalid(['password']);
+
+        assertDatabaseHas('users', ['id' => $user->id]);
+        assertDatabaseHas('stocks', ['id' => $stock->id]);
+        expect(Auth::guard('web')->check())->toBeTrue();
+    });
+
+    it('パスワードが空なら弾き、何も消さない', function () {
+        $user = User::findOrFail(Auth::guard('web')->id());
+
+        delete(route('profile.destroy'), ['password' => ''])
+            ->assertInvalid(['password']);
+
+        assertDatabaseHas('users', ['id' => $user->id]);
+    });
+
+    it('削除が完了すると登録していたアドレスへメールを送る', function () {
+        Notification::fake();
+        $email = User::findOrFail(Auth::guard('web')->id())->email;
+
+        delete(route('profile.destroy'), ['password' => 'password'])
+            ->assertRedirect(route('login'));
+
+        Notification::assertSentOnDemand(
+            AccountDeleted::class,
+            fn ($notification, $channels, $notifiable) => $notifiable->routes['mail'] === $email,
+        );
+    });
+
+    it('メールを送れなくても削除は完了する', function () {
+        $user = User::findOrFail(Auth::guard('web')->id());
+        Notification::shouldReceive('route')->andThrow(new RuntimeException('失敗'));
+
+        delete(route('profile.destroy'), ['password' => 'password'])
+            ->assertRedirect(route('login'));
+
+        assertDatabaseMissing('users', ['id' => $user->id]);
+    });
+
+    it('パスワードが違えばメールを送らない', function () {
+        Notification::fake();
+
+        delete(route('profile.destroy'), ['password' => 'dummy'])
+            ->assertInvalid(['password']);
+
+        Notification::assertNothingSent();
+    });
+});
+
 describe('未ログイン', function () {
     it('操作するとログイン画面へ送られる', function () {
         Auth::guard('web')->logout();
@@ -150,6 +242,9 @@ describe('未ログイン', function () {
             'household_size' => 1,
         ];
         put(route('profile.update'), $input)
+            ->assertRedirect(route('login'));
+
+        delete(route('profile.destroy'), ['password' => 'password'])
             ->assertRedirect(route('login'));
     });
 });

@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import forgotPasswordRoutes from '@/routes/forgot-password';
 import loginRoutes from '@/routes/login';
+import profileRoutes from '@/routes/profile';
 import registerRoutes from '@/routes/register';
 import resetPasswordRoutes from '@/routes/reset-password';
 
@@ -36,4 +37,8 @@ export function resetPassword(
   callbacks: Callbacks,
 ) {
   router.post(resetPasswordRoutes.store.url(), values, callbacks);
+}
+
+export function deleteAccount(password: string, callbacks: Callbacks & { onFinish?: () => void }) {
+  router.delete(profileRoutes.destroy.url(), { data: { password }, ...callbacks });
 }

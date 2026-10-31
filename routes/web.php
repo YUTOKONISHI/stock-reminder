@@ -41,6 +41,7 @@ Route::prefix('app')->group(function () {
         Route::inertia('/settings', 'settings/index')->name('settings.index');
         Route::get('/settings/profile', [ProfileController::class, 'index'])->name('profile.edit');
         Route::put('/settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/settings/profile', [ProfileController::class, 'destroy'])->middleware('throttle:6,1')->name('profile.destroy');
 
         Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push-subscriptions.store');
         Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');

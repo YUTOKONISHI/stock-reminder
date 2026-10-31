@@ -151,3 +151,5 @@ Eloquent 側で `date:Y-m-d` にキャストしており、画面にもJSONに�
 | 商品のあるカテゴリ | `products.category_id` が RESTRICT | 削除前に `products` の有無を見て、あれば画面にエラーを返す |
 
 利用者を削除すると、そのストックと通知履歴は CASCADE で消える。
+`push_subscriptions` はポリモーフィックで外部キーが無く、`password_reset_tokens` と `sessions` にも外部キーが無い。
+この3つはアカウントの削除の処理で明示的に消す（[auth.md](auth.md)）。
