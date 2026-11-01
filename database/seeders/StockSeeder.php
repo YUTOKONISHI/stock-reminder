@@ -23,11 +23,11 @@ class StockSeeder extends Seeder
      * @var array<int, array{product: string, quantity: int, days: int, after: int}>
      */
     private const STOCKS = [
-        ['product' => 'トイレットペーパー1パック', 'quantity' => 1, 'days' => 22, 'after' => 22],
-        ['product' => '洗濯洗剤1本', 'quantity' => 1, 'days' => 30, 'after' => 30],
-        ['product' => 'ミネラルウォーター1箱', 'quantity' => 3, 'days' => 15, 'after' => 5],
-        ['product' => '米5kg', 'quantity' => 2, 'days' => 30, 'after' => 60],
-        ['product' => '醤油1本', 'quantity' => 2, 'days' => 45, 'after' => 90],
+        ['product' => 'トイレットペーパー', 'quantity' => 1, 'days' => 22, 'after' => 22],
+        ['product' => '洗濯洗剤', 'quantity' => 1, 'days' => 30, 'after' => 30],
+        ['product' => 'ミネラルウォーター 2L', 'quantity' => 3, 'days' => 2, 'after' => 5],
+        ['product' => '米', 'quantity' => 2, 'days' => 30, 'after' => 60],
+        ['product' => '醤油', 'quantity' => 2, 'days' => 45, 'after' => 90],
     ];
 
     public function run(): void
