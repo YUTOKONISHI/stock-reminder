@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\NotificationStatus;
 use App\Models\NotificationLog;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -18,12 +19,12 @@ class NotificationLogSeeder extends Seeder
      */
     private const LOGS = [
         [
-            'title' => '「トイレットペーパー1パック」の購入予定日です',
+            'title' => '「トイレットペーパー」の購入予定日です',
             'description' => '今日が購入予定日です。買い忘れにご注意ください。',
             'days_ago' => 2,
         ],
         [
-            'title' => '「洗濯洗剤1本」の購入予定日です',
+            'title' => '「洗濯洗剤」の購入予定日です',
             'description' => '今日が購入予定日です。買い忘れにご注意ください。',
             'days_ago' => 9,
         ],
@@ -41,7 +42,7 @@ class NotificationLogSeeder extends Seeder
                 ['user_id' => $userId, 'title' => $log['title']],
                 [
                     'description' => $log['description'],
-                    'status' => 'sent',
+                    'status' => NotificationStatus::Unread,
                     'created_at' => $sentAt,
                     'updated_at' => $sentAt,
                 ],
