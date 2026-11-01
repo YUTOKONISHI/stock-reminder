@@ -65,6 +65,11 @@ export function useProductManagement() {
     });
   }
 
+  function cancelAdd() {
+    setNewProduct(EMPTY_PRODUCT);
+    setShowNewRow(false);
+  }
+
   return {
     newProduct,
     setNewProduct,
@@ -74,6 +79,7 @@ export function useProductManagement() {
     editingProduct,
     setEditingProduct,
     add,
+    cancelAdd,
     edit,
     update,
     remove,

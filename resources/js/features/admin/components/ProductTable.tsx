@@ -31,6 +31,7 @@ export function ProductTable({ products, categories }: Props) {
     editingProduct,
     setEditingProduct,
     add,
+    cancelAdd,
     edit,
     update,
     remove,
@@ -205,18 +206,23 @@ export function ProductTable({ products, categories }: Props) {
                   />
                 </td>
                 <td className="py-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={
-                      newProduct.name === '' ||
-                      newProduct.category_id === 0 ||
-                      newProduct.default_consumption_interval_days === null
-                    }
-                    onClick={add}
-                  >
-                    登録
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={
+                        newProduct.name === '' ||
+                        newProduct.category_id === 0 ||
+                        newProduct.default_consumption_interval_days === null
+                      }
+                      onClick={add}
+                    >
+                      登録
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={cancelAdd}>
+                      キャンセル
+                    </Button>
+                  </div>
                 </td>
               </tr>
             )}
