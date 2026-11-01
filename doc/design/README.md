@@ -37,7 +37,7 @@ REST API は持たない。
 `/` は `/app/welcome` に転送する。
 
 Push通知の配信は Web Push で、日次のスケジューラが起点になる。
-通知の本体はキューを介して送られる。
+通知の本体は、開発環境ではキューを介して送り、本番ではコマンドの中で送る（[notification.md](notification.md)）。
 
 ## 技術構成
 
@@ -51,7 +51,8 @@ Push通知の配信は Web Push で、日次のスケジューラが起点にな
 | フロントエンド | React 19、TypeScript、Tailwind CSS 4、shadcn/ui 由来の部品（Radix UI） |
 | ビルド | Vite |
 | DB | PostgreSQL |
-| セッション、キャッシュ、キュー | いずれも DB ドライバ |
+| セッション、キャッシュ | どちらも DB ドライバ |
+| キュー | 開発環境は DB ドライバ、本番は `sync` |
 | Push通知 | `laravel-notification-channels/webpush` |
 | 開発環境 | Laravel Sail（Docker） |
 

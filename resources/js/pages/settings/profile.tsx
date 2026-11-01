@@ -1,6 +1,8 @@
 import { router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog';
 import profile from '@/routes/profile';
 import settings from '@/routes/settings';
 import { Button } from '@/shared/components/ui/button';
@@ -44,6 +46,7 @@ export default function Profile() {
     },
   });
   const { isSubmitting } = form.formState;
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   function onSubmit(data: ProfileForm) {
     const changesPassword = data.password !== '';
@@ -180,6 +183,19 @@ export default function Profile() {
             </div>
           </form>
         </Form>
+
+        <div className="mt-8 border-t border-line pt-4">
+          <Button
+            type="button"
+            variant="destructive"
+            className="w-full"
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            アカウントを削除
+          </Button>
+        </div>
+
+        <DeleteAccountDialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} />
       </div>
     </AppShell>
   );

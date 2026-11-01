@@ -178,7 +178,7 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 | CSRF | Laravel の `web` ミドルウェアグループが担う。Inertia が `XSRF-TOKEN` クッキーを送り返す |
 | XSS | React が描画時にエスケープする。`dangerouslySetInnerHTML` は使わない |
 | パスワードの保管 | モデルの `hashed` キャストでハッシュ化する。`password` と `remember_token` は JSON から隠す |
-| 総当たり | 一般ユーザーと管理者のログインはどちらも毎分5回、パスワード忘却と再設定は毎分6回に制限する |
+| 総当たり | 一般ユーザーと管理者のログインはどちらも毎分5回、パスワード忘却、再設定、アカウントの削除は毎分6回に制限する |
 | 越権 | ストックと通知履歴の操作は、対象の `user_id` を照合して違えば 403 を返す |
 | 個人データのキャッシュ | Service Worker で HTML をキャッシュしない |
 | 本番での破壊的なDB操作 | `DB::prohibitDestructiveCommands` を本番で有効にする |

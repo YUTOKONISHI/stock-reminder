@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\NotificationLog;
 use App\Models\Product;
 use App\Models\Stock;
 use App\Models\User;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Notification;
 use function Pest\Laravel\artisan;
 use function Pest\Laravel\assertDatabaseCount;
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\assertDatabaseMissing;
 use function Pest\Laravel\travelTo;
 
 beforeEach(function () {
@@ -164,5 +166,24 @@ describe('通知の失敗', function () {
             'user_id' => $user->id,
             'title' => '「ティッシュ」の購入予定日です',
         ]);
+    });
+
+    it('途中のユーザーで失敗しても次のユーザーへ進む', function () {
+        $failing = User::factory()->create();
+        $next = User::factory()->create();
+        stockDue($failing, '2026-09-20', 'ティッシュ');
+        stockDue($next, '2026-09-23', '洗剤');
+
+        NotificationLog::creating(function (NotificationLog $log) use ($failing) {
+            if ($log->user_id === $failing->id) {
+                throw new RuntimeException('失敗');
+            }
+        });
+
+        artisan('app:send-purchase-reminders')->assertSuccessful();
+
+        Notification::assertSentTo($next, PurchaseReminder::class);
+        assertDatabaseHas('notification_logs', ['user_id' => $next->id]);
+        assertDatabaseMissing('notification_logs', ['user_id' => $failing->id]);
     });
 });
