@@ -85,6 +85,26 @@ describe('マスク', function () {
         ]);
     });
 
+    it('Web Push のサブスクリプション情報を伏せる', function () {
+        $handler = captureRequestLog();
+
+        post(route('push-subscriptions.store'), [
+            'endpoint' => 'https://fcm.googleapis.com/fcm/send/abc123',
+            'keys' => [
+                'p256dh' => 'BpublicKeyForTest',
+                'auth' => 'AuthTokenForTest',
+            ],
+        ]);
+
+        expect(firstLogContext($handler)['input'])->toBe([
+            'endpoint' => '[FILTERED]',
+            'keys' => [
+                'p256dh' => '[FILTERED]',
+                'auth' => '[FILTERED]',
+            ],
+        ]);
+    });
+
     it('入れ子の中も伏せる', function () {
         $handler = captureRequestLog();
 

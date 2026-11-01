@@ -3,14 +3,14 @@
 ## サポートブラウザ
 
 Chrome を対象とする。
-iOS 16.4 以降の Safari は、ホーム画面に追加した場合の Push通知を目指している。実機では確かめていない。
+iOS 16.4 以降の Safari は、ホーム画面に追加した場合に Push通知を受け取れる。ホーム画面への追加と Push通知は実機で確かめた。
 
 | 環境 | Push通知 |
 |---|---|
 | Chrome（デスクトップ、Android） | 通る |
 | macOS Safari 16 以降 | タブのままで通る見込み（未検証） |
 | iOS 16.4 以降の Safari、タブ | 通らない。ホーム画面への追加を案内する（`needs-install`） |
-| iOS 16.4 以降の Safari、ホーム画面から | 通る見込み（未検証） |
+| iOS 16.4 以降の Safari、ホーム画面から | 通る |
 | アプリ内ブラウザ（Instagram、LINE など） | 通らない。Service Worker が無く、追加も案内しない |
 
 iOS 16.3 以前のタブと macOS Safari 15 以前も `needs-install` に入り、案内が誤る。
@@ -135,7 +135,7 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 次の鍵の値を `[FILTERED]` に置き換える。
 入れ子になった配列も再帰的にたどる。
 
-`password`、`password_confirmation`、`current_password`、`temporary_password`、`token`、`_token`、`email`
+`password`、`password_confirmation`、`current_password`、`temporary_password`、`token`、`_token`、`email`、 `auth`、 `p256dh`、 `endpoint`
 
 鍵の一覧は `LogRequest::FILTERED_KEYS` の1箇所にある。
 
