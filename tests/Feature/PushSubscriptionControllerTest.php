@@ -58,6 +58,36 @@ describe('store', function () {
             ->assertInvalid(['endpoint', 'keys.p256dh', 'keys.auth'])
             ->assertRedirectBack();
     });
+
+    it('許可していない宛先は弾く', function (string $endpoint) {
+        post(route('push-subscriptions.store'), [
+            ...subscriptionPayload(),
+            'endpoint' => $endpoint,
+        ])
+            ->assertInvalid(['endpoint']);
+
+        assertDatabaseCount('push_subscriptions', 0);
+    })->with([
+        'http' => ['http://fcm.googleapis.com/a'],
+        '許可外のホスト' => ['https://evil.example/a'],
+        '末尾に別ドメイン' => ['https://fcm.googleapis.com.evil.com/a'],
+        'ユーザー情報' => ['https://fcm.googleapis.com@evil.com/a'],
+        '区切りのない一致' => ['https://evilpush.apple.com/a'],
+        '別ポート' => ['https://fcm.googleapis.com:8443/a'],
+        '内部IP' => ['https://169.254.169.254/'],
+        'エンコードしたホスト' => ['https://127.0.0.1%2f.push.apple.com/'],
+    ]);
+
+    it('許可している Push サービスの宛先を登録できる', function (string $endpoint) {
+        post(route('push-subscriptions.store'), subscriptionPayload($endpoint))
+            ->assertValid();
+
+        assertDatabaseHas('push_subscriptions', ['endpoint' => $endpoint]);
+    })->with([
+        'Apple' => ['https://web.push.apple.com/a'],
+        'Mozilla' => ['https://updates.push.services.mozilla.com/wpush/v2/a'],
+        'Windows' => ['https://wns2-par02p.notify.windows.com/w/?token=a'],
+    ]);
 });
 
 describe('destroy', function () {
