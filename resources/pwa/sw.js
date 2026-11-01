@@ -9,7 +9,8 @@
 // 一般ユーザー画面のルートを /app 配下から出すと、その画面がスコープ外になって
 // PWAのウィンドウから抜ける。ルートを足すときは routes/web.php のグループ内に入れること。
 
-const VERSION = 'v1';
+// PwaController が配信時に置き換える。
+const VERSION = '__SW_VERSION__';
 const ASSET_CACHE = `assets-${VERSION}`;
 const SHELL_CACHE = `shell-${VERSION}`;
 const OFFLINE_URL = '/app/offline.html';

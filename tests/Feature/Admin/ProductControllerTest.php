@@ -104,6 +104,19 @@ describe('store', function () {
         ]);
     });
 
+    it('別のカテゴリでも同じ名前の商品は弾く', function () {
+        Product::factory()->create(['name' => 'トイレットペーパー']);
+
+        post(route('admin.products.store'), [
+            'name' => 'トイレットペーパー',
+            'category_id' => Category::factory()->create()->id,
+            'default_consumption_interval_days' => 14,
+        ])
+            ->assertInvalid(['name']);
+
+        expect(Product::where('name', 'トイレットペーパー')->count())->toBe(1);
+    });
+
     it('入力が欠けていれば弾く', function () {
         post(route('admin.products.store'), [])
             ->assertInvalid([
@@ -137,6 +150,20 @@ describe('update', function () {
             'created_by' => $product->created_by,
             'updated_by' => Auth::guard('admin')->id(),
         ]);
+    });
+
+    it('他の商品と同じ名前には変えられない', function () {
+        Product::factory()->create(['name' => 'トイレットペーパー']);
+        $product = Product::factory()->create(['name' => 'ティッシュ']);
+
+        put(route('admin.products.update', $product), [
+            'name' => 'トイレットペーパー',
+            'category_id' => $product->category_id,
+            'default_consumption_interval_days' => 14,
+        ])
+            ->assertInvalid(['name']);
+
+        expect($product->refresh()->name)->toBe('ティッシュ');
     });
 
     it('入力が欠けていれば弾く', function () {

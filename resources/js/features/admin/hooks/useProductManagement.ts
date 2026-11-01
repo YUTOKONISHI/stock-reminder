@@ -39,8 +39,8 @@ export function useProductManagement() {
         setEditingId(null);
         setEditingProduct(null);
       },
-      onError: () => {
-        toast.error('商品情報の更新に失敗しました');
+      onError: (errors) => {
+        toast.error(errors.name ?? '商品情報の更新に失敗しました');
       },
     });
   }
@@ -59,8 +59,8 @@ export function useProductManagement() {
         setNewProduct(EMPTY_PRODUCT);
         setShowNewRow(false);
       },
-      onError: () => {
-        toast.error('商品登録に失敗しました');
+      onError: (errors) => {
+        toast.error(errors.name ?? '商品登録に失敗しました');
       },
     });
   }

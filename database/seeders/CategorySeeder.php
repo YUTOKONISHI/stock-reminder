@@ -11,7 +11,7 @@ class CategorySeeder extends Seeder
     /**
      * カテゴリマスタを投入する。
      *
-     * 名前は resources/js/components/CategoryIcon.tsx のアイコン対応表と揃える。
+     * 名前は resources/js/shared/components/CategoryIcon.tsx のアイコン対応表と揃える。
      * ここに無い名前のカテゴリは、ダッシュボードで既定のアイコンになる。
      */
     public function run(): void

@@ -19,7 +19,7 @@ class ProductFactory extends Factory
     {
         return [
             'category_id' => Category::factory(),
-            'name' => fake()->word(),
+            'name' => fake()->unique()->word(),
             'default_consumption_interval_days' => 7,
             'created_by' => Admin::factory(),
             'updated_by' => Admin::factory(),
