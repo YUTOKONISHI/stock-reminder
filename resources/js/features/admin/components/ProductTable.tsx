@@ -37,11 +37,11 @@ export function ProductTable({ products, categories }: Props) {
   } = useProductManagement();
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-6">
+    <div className="flex min-w-0 flex-1 flex-col pt-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-6">
         <table className="w-full">
           {/* border-collapse の表では sticky の行に付けた罫線がスクロールで流れるため、影で引く */}
-          <thead className="sticky top-0 bg-surface shadow-[inset_0_-1px_0_var(--color-line)]">
+          <thead className="sticky top-0 z-10 bg-surface shadow-[inset_0_-1px_0_var(--color-line)]">
             <tr className="text-ink-muted">
               <th className="w-1/3 py-2 text-left font-medium">商品名</th>
               <th className="w-1/4 py-2 text-left font-medium">商品カテゴリ</th>

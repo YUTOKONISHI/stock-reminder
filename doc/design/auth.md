@@ -71,7 +71,8 @@ Fortify のビューは Inertia のページ部品に差し替える。
 Fortify は通さない。
 
 ログインはユーザ名（`admin.name`）とパスワードで、`Auth::guard('admin')->attempt` に渡す。
-成功したらセッションIDを再生成し、`redirect()->intended` で元の行き先か `/admin/dashboard` に送る。
+成功したらセッションIDを再生成し、`/admin/dashboard` に送る。
+`redirect()->intended` は使わない。`url.intended` は `web` ガードと `admin` ガードで共有され、`/app/*` の行き先が入っていると一般ユーザーのログイン画面へ戻されるためである。
 失敗したら `auth_error` に「名前またはパスワードが正しくありません」を載せて戻す。
 
 回数制限は `admin-login` リミッタで、ユーザ名とIPの組ごとに毎分5回までとする。
