@@ -24,6 +24,19 @@ describe('login', function () {
         assertAuthenticatedAs($admin, 'admin');
     });
 
+    it('一般ユーザーの画面で未ログインと判定された後でもマスタ画面へ進む', function () {
+        $admin = Admin::factory()->create();
+
+        get(route('dashboard'))->assertRedirect(route('login'));
+
+        post(route('admin.login.store'), [
+            'name' => $admin->name,
+            'password' => 'password',
+        ])
+            ->assertValid()
+            ->assertRedirect(route('admin.dashboard'));
+    });
+
     it('一般ユーザーの資格情報では入れない', function () {
         $user = User::factory()->create(['name' => 'hoge']);
 
