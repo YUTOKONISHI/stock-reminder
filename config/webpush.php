@@ -35,7 +35,7 @@ return [
     /**
      * The Guzzle client options used by Minishlink\WebPush.
      */
-    'client_options' => [],
+    'client_options' => ['allow_redirects' => false],
 
     /**
      * The automatic padding in bytes used by Minishlink\WebPush.
@@ -43,4 +43,7 @@ return [
      */
     'automatic_padding' => env('WEBPUSH_AUTOMATIC_PADDING', true),
 
+    'exact_match_domains' => ['fcm.googleapis.com'],
+
+    'suffix_match_domains' => ['.push.services.mozilla.com', '.push.apple.com', '.notify.windows.com'],
 ];

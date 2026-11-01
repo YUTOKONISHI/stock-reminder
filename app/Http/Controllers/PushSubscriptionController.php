@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Rules\PushEndpoint;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -11,7 +12,7 @@ class PushSubscriptionController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'endpoint' => ['required', 'string', 'max:500'],
+            'endpoint' => ['required', 'string', 'max:500', new PushEndpoint],
             'keys.p256dh' => ['required', 'string'],
             'keys.auth' => ['required', 'string'],
         ]);
