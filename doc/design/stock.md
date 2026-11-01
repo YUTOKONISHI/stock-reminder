@@ -119,10 +119,11 @@ DB 側にも `(user_id, product_id)` の一意制約がある。
 
 ### 購入済みの記録
 
-購入予定品の各カードにある買い物かごのボタンから `PATCH /app/stocks/{stock}/purchase`（`StockController::purchase`）を呼ぶ。
+購入予定品の各カードにある「買った」のボタンでダイアログ（`PurchaseStockDialog`）を開く。
+購入後のストック数（残っていた分も含めた手元の合計）を入力して確定すると、`PATCH /app/stocks/{stock}/purchase`（`StockController::purchase`）を呼ぶ。
+入力欄の初期値は現在のストック数である。
 
-次回購入予定日を「今日 + 消費日数 × ストック数」に進め、`last_purchased_on` に今日を入れる。
-ストック数は変えない。
+ストック数を入力値で更新し、次回購入予定日を「今日 + 消費日数 × 入力値」に進め、`last_purchased_on` に今日を入れる。
 編集（`update`）では `last_purchased_on` を NULL に戻す。
 処理のあとダッシュボードに戻る。
 

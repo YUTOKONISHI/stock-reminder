@@ -26,7 +26,7 @@ describe('他人のストック', function () {
         '編集画面' => ['get', 'stocks.edit'],
         '更新' => ['put', 'stocks.update', ['quantity' => 1, 'consumption_interval_days' => 7]],
         '削除' => ['delete', 'stocks.destroy'],
-        '購入' => ['patch', 'stocks.purchase'],
+        '購入' => ['patch', 'stocks.purchase', ['quantity' => 1]],
     ]);
 });
 
@@ -173,7 +173,7 @@ describe('destroy', function () {
 });
 
 describe('purchase', function () {
-    it('予定日が進み、ストック数は変わらない', function () {
+    it('入力したストック数を保存し、その数で予定日を進める', function () {
         $stock = Stock::factory()->create([
             'quantity' => 3,
             'consumption_interval_days' => 7,
@@ -181,12 +181,32 @@ describe('purchase', function () {
         ]);
 
         actingAs($stock->user)
-            ->patch(route('stocks.purchase', $stock))
+            ->patch(route('stocks.purchase', $stock), ['quantity' => 2])
             ->assertRedirect(route('dashboard'));
 
         expect($stock->refresh())
-            ->next_purchase_date->format('Y-m-d')->toBe('2026-10-12')
-            ->quantity->toBe(3)
+            ->next_purchase_date->format('Y-m-d')->toBe('2026-10-05')
+            ->quantity->toBe(2)
             ->last_purchased_on->format('Y-m-d')->toBe('2026-09-21');
     });
+
+    it('ストック数NGでは何も変えない', function (array $data) {
+        $stock = Stock::factory()->create([
+            'quantity' => 3,
+            'next_purchase_date' => '2026-09-22',
+        ]);
+
+        actingAs($stock->user)
+            ->patch(route('stocks.purchase', $stock), $data)
+            ->assertInvalid('quantity');
+
+        expect($stock->refresh())
+            ->next_purchase_date->format('Y-m-d')->toBe('2026-09-22')
+            ->quantity->toBe(3)
+            ->last_purchased_on->toBeNull();
+    })->with([
+        '未入力' => [[]],
+        '0' => [['quantity' => 0]],
+        '小数' => [['quantity' => 1.5]],
+    ]);
 });

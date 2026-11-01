@@ -203,7 +203,7 @@ describe('購入予定品', () => {
     expect(rows[1]).toHaveTextContent('ティッシュ');
   });
 
-  it('購入ボタンを押すと購入を記録する', () => {
+  it('購入ボタンを押すとダイアログを開き、確定すると押した商品の購入を記録する', () => {
     render(
       <Dashboard
         stocks={[
@@ -223,13 +223,16 @@ describe('購入予定品', () => {
       />,
     );
 
-    const button = screen.getByRole('button', { name: '「ティッシュ」を購入済みにする' });
-    fireEvent.click(button);
+    fireEvent.click(screen.getByRole('button', { name: '「ティッシュ」を購入済みにする' }));
+
+    expect(router.patch).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: '記録する' }));
 
     expect(router.patch).toHaveBeenCalledWith(
       '/app/stocks/2/purchase',
-      {},
-      { preserveScroll: true },
+      { quantity: 3 },
+      expect.objectContaining({ preserveScroll: true }),
     );
   });
 });

@@ -24,6 +24,10 @@ export function deleteStock(id: number) {
   router.delete(stocks.destroy.url(id));
 }
 
-export function markStockAsPurchased(id: number) {
-  router.patch(stocks.purchase.url(id), {}, { preserveScroll: true });
+export function markStockAsPurchased(
+  id: number,
+  quantity: number,
+  callbacks: { onSuccess: () => void; onError: (errors: Errors) => void },
+) {
+  router.patch(stocks.purchase.url(id), { quantity }, { preserveScroll: true, ...callbacks });
 }

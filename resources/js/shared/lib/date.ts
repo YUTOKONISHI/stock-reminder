@@ -3,6 +3,7 @@ import {
   differenceInCalendarDays,
   format,
   isToday as isTodayFns,
+  isValid,
   parseISO,
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -29,6 +30,13 @@ export function formatMonthDayWithWeekday(value: string): string {
 /** 2026/09/06(日) */
 export function formatDateWithWeekday(value: string): string {
   return format(parseISO(value), 'yyyy/MM/dd(EEE)', { locale: ja });
+}
+
+/** 今日の days 日後を 2026/09/06(日) の形式で返す。Date で表せない日数なら null */
+export function formatDateAfterDays(days: number): string | null {
+  const date = addDays(new Date(), days);
+
+  return isValid(date) ? format(date, 'yyyy/MM/dd(EEE)', { locale: ja }) : null;
 }
 
 /** input[type=date] の value に渡す形式 */
