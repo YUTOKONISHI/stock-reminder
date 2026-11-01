@@ -21,6 +21,9 @@ class LogRequest
         'token',
         '_token',
         'email',
+        'auth',
+        'p256dh',
+        'endpoint',
     ];
 
     private const FILTERED_VALUE = '[FILTERED]';
