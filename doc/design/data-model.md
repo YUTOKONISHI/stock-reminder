@@ -1,7 +1,7 @@
 # データ設計
 
 PostgreSQL を使う。
-図の正本は drawSQL 側にあり、エクスポートは `doc/specifications/drawSQL-pgsql-export-2026-10-23.sql` に置く。
+図の正本は drawSQL 側にあり、エクスポートは `doc/specifications/drawSQL-pgsql-export-2026-11-01.sql` に置く。
 本書はマイグレーションから起こした列の一覧である。
 
 日時列はすべて `timestamptz` で持つ。日付だけの値は `date` で持つ。

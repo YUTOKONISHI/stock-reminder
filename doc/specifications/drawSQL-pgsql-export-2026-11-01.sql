@@ -110,6 +110,8 @@ CREATE TABLE "categories"(
 );
 ALTER TABLE
     "categories" ADD PRIMARY KEY("id");
+ALTER TABLE
+    "categories" ADD CONSTRAINT "categories_name_unique" UNIQUE("name");
 COMMENT
 ON COLUMN
     "categories"."name" IS 'カテゴリ名';
@@ -140,6 +142,8 @@ CREATE TABLE "products"(
 );
 ALTER TABLE
     "products" ADD PRIMARY KEY("id");
+ALTER TABLE
+    "products" ADD CONSTRAINT "products_name_unique" UNIQUE("name");
 COMMENT
 ON COLUMN
     "products"."category_id" IS 'カテゴリID';
@@ -167,11 +171,9 @@ CREATE TABLE "stocks"(
     "product_id" BIGINT NOT NULL,
     "quantity" INTEGER NOT NULL DEFAULT 1,
     "consumption_interval_days" INTEGER NOT NULL,
-    "next_purchase_date" TIMESTAMP(0) WITH
-        TIME zone NOT NULL,
-        "last_purchased_on" DATE NULL,
-        "created_at" TIMESTAMP(0)
-    WITH
+    "next_purchase_date" DATE NOT NULL,
+    "last_purchased_on" DATE NULL,
+    "created_at" TIMESTAMP(0) WITH
         TIME zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updated_at" TIMESTAMP(0)
     WITH
