@@ -67,6 +67,34 @@ describe('一覧', () => {
   });
 });
 
+describe('追加', () => {
+  it('キャンセルすると入力欄の行を閉じて登録を送らない', () => {
+    renderTable([]);
+
+    fireEvent.click(screen.getByRole('button', { name: '追加' }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '商品1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'キャンセル' }));
+
+    expect(productRows()).toHaveLength(0);
+    expect(router.post).not.toHaveBeenCalled();
+  });
+
+  it('キャンセルしてから開き直すと入力が消えている', () => {
+    renderTable([]);
+
+    fireEvent.click(screen.getByRole('button', { name: '追加' }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '商品1' } });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '2' } });
+    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '10' } });
+    fireEvent.click(screen.getByRole('button', { name: 'キャンセル' }));
+    fireEvent.click(screen.getByRole('button', { name: '追加' }));
+
+    expect(screen.getByRole('textbox')).toHaveValue('');
+    expect(screen.getByRole('combobox')).toHaveValue('0');
+    expect(screen.getByRole('spinbutton')).toHaveValue(null);
+  });
+});
+
 describe('削除', () => {
   it('利用者のストックにある商品は削除ボタンを押せない', () => {
     renderTable([product({ stocks_count: 1 })]);
