@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Vite;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
@@ -28,6 +29,16 @@ describe('PWA のファイル', function () {
         'マニフェスト' => ['/app/manifest.webmanifest', 'application/manifest+json'],
         'オフライン画面' => ['/app/offline.html', 'text/html; charset=UTF-8'],
     ]);
+
+    it('ビルドが変わると Service Worker の中身も変わる', function () {
+        Vite::shouldReceive('manifestHash')->andReturn('build-a', 'build-b');
+
+        $first = get('/app/sw.js')->getContent();
+        $second = get('/app/sw.js')->getContent();
+
+        expect($first)->not->toContain('__SW_VERSION__')
+            ->and($first)->not->toBe($second);
+    });
 
     it('セッションの Cookie を発行しない', function () {
         get('/app/manifest.webmanifest')->assertCookieMissing(config('session.cookie'));

@@ -60,7 +60,8 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 
 キャッシュ名には `VERSION` を含める。
 `activate` で、その版に属さないキャッシュをすべて消す。
-配布のたびに `VERSION` を上げる。
+`VERSION` は `PwaController` が配信時に埋める。
+値は Vite のマニフェストとオフライン画面のハッシュから作るので、手で上げる必要はない。
 
 ### マニフェスト
 
@@ -164,7 +165,7 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 | `DB_TIMEZONE`（`config/database.php` の `pgsql.timezone`） | `Asia/Tokyo` |
 
 日時列はすべて `timestamptz` で持つ。
-日付として扱う `stocks.next_purchase_date` は、Eloquent 側で `date:Y-m-d` にキャストして、画面には `YYYY-MM-DD` で渡す。
+日付だけの値（`stocks.next_purchase_date`、`stocks.last_purchased_on`）は `date` で持ち、Eloquent 側で `date:Y-m-d` にキャストして、画面には `YYYY-MM-DD` で渡す。
 画面側の日付の比較は、この文字列同士で行う。
 
 `AppServiceProvider` で `Date::use(CarbonImmutable::class)` を設定しており、日時は不変オブジェクトとして扱う。
@@ -245,9 +246,9 @@ PHPStan は level 7 で、`app/`、`bootstrap/app.php`、`config/`、`database/`
 
 | 層 | 道具 | 置き場 | ファイル | 件数 |
 |---|---|---|---|---|
-| Unit | Pest 4 | `tests/Unit/` | 3 | 7 |
-| Feature | Pest 4 | `tests/Feature/` | 13 | 112 |
-| フロントエンド | Vitest 5 | 対象ファイルの隣（`resources/js/**/*.test.ts(x)`） | 10 | 95 |
+| Unit | Pest 4 | `tests/Unit/` | 3 | 12 |
+| Feature | Pest 4 | `tests/Feature/` | 17 | 141 |
+| フロントエンド | Vitest 5 | 対象ファイルの隣（`resources/js/**/*.test.ts(x)`） | 14 | 131 |
 
 Unit は DB に触れない算出とログの主体判定を見る。
 Feature は HTTP の入口から通し、`RefreshDatabase` でマイグレーションを流す。
@@ -258,12 +259,11 @@ Feature は HTTP の入口から通し、`RefreshDatabase` でマイグレーシ
 
 ### CI
 
-GitHub Actions のワークフローは3つある。
+GitHub Actions のワークフローは2つある。
 
 | ファイル | 内容 |
 |---|---|
-| `.github/workflows/lint.yml` | Pint、Prettier、ESLint |
-| `.github/workflows/tests.yml` | PHPStan、`tsc`、Vitest、`artisan test`。PHP 8.4 と 8.5 の2通り |
+| `.github/workflows/tests.yml` | `quality` ジョブで Pint、Prettier、ESLint。`ci` ジョブで PHPStan、`tsc`、Vitest、`artisan test`（PHP 8.4 と 8.5 の2通り） |
 | `.github/workflows/deploy.yml` | `main` への push で `tests` が通ったら、`flyctl deploy` で Fly.io にデプロイする |
 
 `tests.yml` は postgres のサービスコンテナを立てる。

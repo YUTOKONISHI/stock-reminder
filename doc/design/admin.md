@@ -58,7 +58,7 @@
 
 | 入力 | 検証 |
 |---|---|
-| `name` | 必須、255文字以内 |
+| `name` | 必須、255文字以内、`products` の中で一意（更新では自身を除く） |
 | `category_id` | 必須、`categories` に存在 |
 | `default_consumption_interval_days` | 必須、1以上の整数 |
 

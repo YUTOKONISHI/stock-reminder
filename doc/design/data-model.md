@@ -4,7 +4,7 @@ PostgreSQL を使う。
 図の正本は drawSQL 側にあり、エクスポートは `doc/specifications/drawSQL-pgsql-export-2026-10-23.sql` に置く。
 本書はマイグレーションから起こした列の一覧である。
 
-日時列はすべて `timestamptz` で持つ。
+日時列はすべて `timestamptz` で持つ。日付だけの値は `date` で持つ。
 タイムゾーンの扱いは [non-functional.md](non-functional.md) にある。
 
 ## 関連
@@ -49,14 +49,14 @@ admin ──┬─< categories ──< products ──< stocks >── users ─
 | `created_at` / `updated_at` | timestamptz | NOT NULL | |
 
 管理者を作る画面は無い。
-アカウントは DB に直接入れる。
+作り方は [admin.md](admin.md) にある。
 
 ### categories（カテゴリ）
 
 | 列 | 型 | 制約 | 備考 |
 |---|---|---|---|
 | `id` | bigserial | PK | |
-| `name` | varchar(255) | NOT NULL | 一意性はアプリ側の検証だけで担保する |
+| `name` | varchar(255) | NOT NULL, UNIQUE | |
 | `created_by` | bigint | NOT NULL, FK → `admin.id` | |
 | `updated_by` | bigint | NOT NULL, FK → `admin.id` | |
 | `created_at` / `updated_at` | timestamptz | NOT NULL | |
@@ -67,7 +67,7 @@ admin ──┬─< categories ──< products ──< stocks >── users ─
 |---|---|---|---|
 | `id` | bigserial | PK | |
 | `category_id` | bigint | NOT NULL, FK → `categories.id`（削除時 RESTRICT） | |
-| `name` | varchar(255) | NOT NULL | |
+| `name` | varchar(255) | NOT NULL, UNIQUE | カテゴリをまたいで一意 |
 | `default_consumption_interval_days` | integer | NOT NULL | ストック1つが何日もつかの既定値 |
 | `created_by` | bigint | NOT NULL, FK → `admin.id` | |
 | `updated_by` | bigint | NOT NULL, FK → `admin.id` | |
@@ -82,15 +82,13 @@ admin ──┬─< categories ──< products ──< stocks >── users ─
 | `product_id` | bigint | NOT NULL, FK → `products.id`（削除時 RESTRICT） | |
 | `quantity` | integer | NOT NULL, 既定 1 | ストック数 |
 | `consumption_interval_days` | integer | NOT NULL | ストック1つあたりの消費日数 |
-| `next_purchase_date` | timestamptz | NOT NULL | 日付として扱う。下記 |
+| `next_purchase_date` | date | NOT NULL | 次回購入予定日 |
 | `last_purchased_on` | date | NULL可 | ダッシュボードの購入ボタンで購入済みにした日。編集すると NULL に戻る |
 | `created_at` / `updated_at` | timestamptz | NOT NULL | |
 
 `(user_id, product_id)` に一意制約を持つ。
 
-`next_purchase_date` は列の型こそ `timestamptz` だが、値の意味は日付である。
-Eloquent 側で `date:Y-m-d` にキャストしており、画面にもJSONにも `YYYY-MM-DD` で出る。
-`last_purchased_on` も同じキャストで `YYYY-MM-DD` になる。
+`next_purchase_date` と `last_purchased_on` は Eloquent 側で `date:Y-m-d` にキャストしており、画面にもJSONにも `YYYY-MM-DD` で出る。
 
 ### notification_logs（通知履歴）
 
