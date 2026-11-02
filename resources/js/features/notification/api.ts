@@ -11,17 +11,32 @@ export type PushSubscriptionPayload = {
 };
 
 export function storePushSubscription(payload: PushSubscriptionPayload) {
-  router.post(pushSubscriptions.store.url(), payload, {
-    preserveScroll: true,
-    preserveState: true,
+  return new Promise<boolean>((resolve) => {
+    let saved = false;
+    router.post(pushSubscriptions.store.url(), payload, {
+      preserveScroll: true,
+      preserveState: true,
+      onSuccess: () => {
+        saved = true;
+      },
+      onFinish: () => resolve(saved),
+    });
   });
 }
 
 export function destroyPushSubscription(endpoint: string) {
-  router.delete(pushSubscriptions.destroy.url(), {
-    data: { endpoint },
-    preserveScroll: true,
-    preserveState: true,
+  return new Promise<boolean>((resolve) => {
+    let destroyed = false;
+
+    router.delete(pushSubscriptions.destroy.url(), {
+      data: { endpoint },
+      preserveScroll: true,
+      preserveState: true,
+      onSuccess: () => {
+        destroyed = true;
+      },
+      onFinish: () => resolve(destroyed),
+    });
   });
 }
 
