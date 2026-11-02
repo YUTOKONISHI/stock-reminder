@@ -106,12 +106,10 @@ export function useStockForm({ stock, products }: Params) {
     };
 
     if (stock !== null) {
-      updateStock(stock.id, payload, applyErrors);
-
-      return;
+      return updateStock(stock.id, payload, applyErrors);
     }
 
-    createStock({ ...payload, product_id: Number(values.product_id) }, applyErrors);
+    return createStock({ ...payload, product_id: Number(values.product_id) }, applyErrors);
   }
 
   function remove() {
