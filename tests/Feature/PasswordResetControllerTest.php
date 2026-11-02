@@ -146,3 +146,30 @@ describe('resetPassword', function () {
             ->and(DB::table('sessions')->where('user_id', $other->id)->count())->toBe(1);
     });
 });
+
+describe('メールアドレスの大文字', function () {
+    it('大文字を含む入力でも仮パスワードを発行する', function () {
+        $user = User::factory()->create(['email' => 'taro@example.com']);
+
+        post(route('forgot-password.store'), ['email' => 'Taro@example.com']);
+
+        assertDatabaseHas('password_reset_tokens', ['email' => 'taro@example.com']);
+        Notification::assertSentTo($user, TemporaryPasswordIssued::class);
+    });
+
+    it('大文字を含む入力でも再設定し、トークンを消す', function () {
+        $user = User::factory()->create(['email' => 'taro@example.com']);
+        $temporary = issueTemporaryPassword($user);
+
+        post(route('reset-password'), [
+            'email' => 'Taro@Example.com',
+            'temporary_password' => $temporary,
+            'password' => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ])
+            ->assertRedirect(route('login'));
+
+        expect(Hash::check('NewPassword123!', $user->refresh()->password))->toBeTrue();
+        assertDatabaseMissing('password_reset_tokens', ['email' => 'taro@example.com']);
+    });
+});
