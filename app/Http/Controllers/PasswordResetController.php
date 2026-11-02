@@ -68,12 +68,17 @@ class PasswordResetController extends Controller
             return back()->withErrors($failed);
         }
 
-        $user->forceFill([
-            'password' => $request->password,
-            'remember_token' => Str::random(60),
-        ])->save();
+        DB::transaction(
+            function () use ($user, $request) {
+                $user->forceFill([
+                    'password' => $request->password,
+                    'remember_token' => Str::random(60),
+                ])->save();
 
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+                DB::table('sessions')->where('user_id', $user->id)->delete();
+                DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            }
+        );
 
         return to_route('login')->with('success', 'パスワードを再設定しました');
     }

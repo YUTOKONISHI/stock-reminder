@@ -45,8 +45,14 @@ class ProfileController extends Controller
 
             if ($changesPassword) {
                 $updatesPasswords->update($user, $input);
+
+                DB::table('sessions')->where('user_id', $user->id)->delete();
             }
         });
+
+        if ($changesPassword) {
+            $request->session()->regenerate(true);
+        }
 
         return back();
     }

@@ -143,6 +143,41 @@ describe('update', function () {
 
         expect(Hash::check('password', User::findOrFail($user->id)->password))->toBeTrue();
     });
+
+    it('パスワードを変更すると他の端末のセッションを消し、今のセッションはIDを変えて残す', function () {
+        config(['session.driver' => 'database']);
+        app('session')->forgetDrivers();
+
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $ownId = str_repeat('a', 40);
+
+        foreach ([$ownId => $user->id, str_repeat('b', 40) => $user->id, str_repeat('c', 40) => $other->id] as $id => $userId) {
+            DB::table('sessions')->insert([
+                'id' => $id,
+                'user_id' => $userId,
+                'payload' => '',
+                'last_activity' => now()->timestamp,
+            ]);
+        }
+
+        actingAs($user)
+            ->withCookie(config('session.cookie'), $ownId)
+            ->put(route('profile.update'), [
+                'name' => '太郎',
+                'household_size' => 1,
+                'current_password' => 'password',
+                'password' => 'test1234',
+                'password_confirmation' => 'test1234',
+            ])
+            ->assertValid();
+
+        $ownSessions = DB::table('sessions')->where('user_id', $user->id)->pluck('id');
+
+        expect($ownSessions)->toHaveCount(1)
+            ->and($ownSessions)->not->toContain($ownId)
+            ->and(DB::table('sessions')->where('user_id', $other->id)->count())->toBe(1);
+    });
 });
 
 describe('destroy', function () {

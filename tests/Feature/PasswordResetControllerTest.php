@@ -119,4 +119,30 @@ describe('resetPassword', function () {
             ])
             ->assertInvalid(['temporary_password']);
     });
+
+    it('パスワードを再設定すると、その利用者のセッションをすべて消す', function () {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $temporary = issueTemporaryPassword($user);
+
+        foreach ([str_repeat('a', 40) => $user->id, str_repeat('b', 40) => $user->id, str_repeat('c', 40) => $other->id] as $id => $userId) {
+            DB::table('sessions')->insert([
+                'id' => $id,
+                'user_id' => $userId,
+                'payload' => '',
+                'last_activity' => now()->timestamp,
+            ]);
+        }
+
+        post(route('reset-password'), [
+            'email' => $user->email,
+            'temporary_password' => $temporary,
+            'password' => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ])
+            ->assertRedirect(route('login'));
+
+        expect(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0)
+            ->and(DB::table('sessions')->where('user_id', $other->id)->count())->toBe(1);
+    });
 });
