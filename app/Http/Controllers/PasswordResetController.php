@@ -22,13 +22,15 @@ class PasswordResetController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $email = Str::lower($request->email);
+
+        $user = User::where('email', $email)->first();
 
         if ($user) {
             $temporaryPassword = $this->generateTemporaryPassword();
 
             DB::table('password_reset_tokens')->updateOrInsert(
-                ['email' => $request->email],
+                ['email' => $email],
                 ['token' => Hash::make($temporaryPassword), 'created_at' => now()],
             );
 
@@ -48,7 +50,8 @@ class PasswordResetController extends Controller
 
         $failed = ['temporary_password' => '仮パスワードが正しくありません。もう一度発行してください。'];
 
-        $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();
+        $email = Str::lower($request->email);
+        $record = DB::table('password_reset_tokens')->where('email', $email)->first();
 
         if (! $record || ! Hash::check($request->temporary_password, $record->token)) {
             return back()->withErrors($failed);
@@ -57,26 +60,26 @@ class PasswordResetController extends Controller
         $expiresInMinutes = (int) config('auth.passwords.users.expire');
 
         if (Carbon::parse($record->created_at)->addMinutes($expiresInMinutes)->isPast()) {
-            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
 
             return back()->withErrors($failed);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $email)->first();
 
         if (! $user) {
             return back()->withErrors($failed);
         }
 
         DB::transaction(
-            function () use ($user, $request) {
+            function () use ($user, $request, $email) {
                 $user->forceFill([
                     'password' => $request->password,
                     'remember_token' => Str::random(60),
                 ])->save();
 
                 DB::table('sessions')->where('user_id', $user->id)->delete();
-                DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+                DB::table('password_reset_tokens')->where('email', $email)->delete();
             }
         );
 
