@@ -44,6 +44,7 @@ function callbacks() {
   return vi.mocked(router.patch).mock.calls[0][2] as {
     onSuccess?: () => void;
     onError?: (errors: Record<string, string>) => void;
+    onFinish?: () => void;
   };
 }
 
@@ -55,6 +56,22 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+});
+
+describe('送信中', () => {
+  it('ボタンを無効にして再送信を止め、完了すると元に戻す', () => {
+    renderDialog();
+    const button = screen.getByRole('button', { name: '記録する' });
+
+    fireEvent.click(button);
+    expect(button).toBeDisabled();
+
+    fireEvent.submit(quantityInput());
+    expect(router.patch).toHaveBeenCalledOnce();
+
+    act(() => callbacks().onFinish?.());
+    expect(button).toBeEnabled();
+  });
 });
 
 describe('PurchaseStockDialog', () => {

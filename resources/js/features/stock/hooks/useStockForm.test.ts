@@ -244,6 +244,35 @@ describe('submit', () => {
     expect(errors.quantity?.message).toBe('ストック数は1以上の値にしてください。');
     expect(errors.category_id).toBeUndefined();
   });
+
+  it.each([
+    ['登録', null, 'post'],
+    ['編集', stock(), 'put'],
+  ] as const)('%sは onFinish が呼ばれるまで完了しない', async (_name, target, method) => {
+    const { result } = renderHook(() => useStockForm({ stock: target, products: PRODUCTS }));
+    let finished = false;
+
+    const submitting = result.current
+      .submit({
+        category_id: '1',
+        product_id: '10',
+        quantity: '2',
+        consumption_interval_days: '14',
+        next_purchase_date: '2026-10-01',
+      })
+      .then(() => {
+        finished = true;
+      });
+
+    await Promise.resolve();
+    expect(finished).toBe(false);
+
+    const options = vi.mocked(router[method]).mock.calls[0][2] as { onFinish: () => void };
+
+    options.onFinish();
+    await submitting;
+    expect(finished).toBe(true);
+  });
 });
 
 describe('remove', () => {

@@ -13,11 +13,15 @@ export function createStock(
   payload: StockPayload & { product_id: number },
   onError: (errors: Errors) => void,
 ) {
-  router.post(stocks.store.url(), payload, { onError });
+  return new Promise<void>((resolve) => {
+    router.post(stocks.store.url(), payload, { onError, onFinish: () => resolve() });
+  });
 }
 
 export function updateStock(id: number, payload: StockPayload, onError: (errors: Errors) => void) {
-  router.put(stocks.update.url(id), payload, { onError });
+  return new Promise<void>((resolve) => {
+    router.put(stocks.update.url(id), payload, { onError, onFinish: () => resolve() });
+  });
 }
 
 export function deleteStock(id: number) {
@@ -27,7 +31,7 @@ export function deleteStock(id: number) {
 export function markStockAsPurchased(
   id: number,
   quantity: number,
-  callbacks: { onSuccess: () => void; onError: (errors: Errors) => void },
+  callbacks: { onSuccess: () => void; onError: (errors: Errors) => void; onFinish: () => void },
 ) {
   router.patch(stocks.purchase.url(id), { quantity }, { preserveScroll: true, ...callbacks });
 }

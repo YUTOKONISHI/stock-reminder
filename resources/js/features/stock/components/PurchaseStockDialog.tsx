@@ -39,6 +39,7 @@ function parseQuantity(value: string): number | null {
 function PurchaseStockForm({ stock, onClose }: FormProps) {
   const [value, setValue] = useState(String(stock.quantity));
   const [serverError, setServerError] = useState<string>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const quantity = parseQuantity(value);
   const nextPurchaseDate =
@@ -53,9 +54,11 @@ function PurchaseStockForm({ stock, onClose }: FormProps) {
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
-    if (quantity === null) {
+    if (quantity === null || isSubmitting) {
       return;
     }
+
+    setIsSubmitting(true);
 
     markStockAsPurchased(stock.id, quantity, {
       onSuccess: () => {
@@ -64,6 +67,7 @@ function PurchaseStockForm({ stock, onClose }: FormProps) {
         });
         onClose();
       },
+      onFinish: () => setIsSubmitting(false),
       onError: (errors) => setServerError(errors.quantity),
     });
   }
@@ -127,7 +131,7 @@ function PurchaseStockForm({ stock, onClose }: FormProps) {
           キャンセル
         </Button>
         {/* 入力欄に自動でフォーカスすると、スマホで数字キーボードが開いて確認の表示を隠す */}
-        <Button type="submit" size="lg" autoFocus disabled={quantity === null}>
+        <Button type="submit" size="lg" autoFocus disabled={quantity === null || isSubmitting}>
           記録する
         </Button>
       </DialogFooter>
