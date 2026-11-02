@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { needsManualInstall } from '@/shared/lib/displayMode';
 import { destroyPushSubscription, storePushSubscription } from '../api';
 import type { PushSubscriptionPayload } from '../api';
@@ -48,12 +49,34 @@ export function usePushSubscription(vapidPublicKey: string) {
     }
 
     const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-    });
+    const subscription = await registration.pushManager
+      .subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      })
+      .catch((error) => {
+        console.error(error);
 
-    storePushSubscription(subscription.toJSON() as PushSubscriptionPayload);
+        return null;
+      });
+
+    if (!subscription) {
+      setStatus('off');
+      toast.error('Push通知をONにできませんでした');
+
+      return;
+    }
+
+    const saved = await storePushSubscription(subscription.toJSON() as PushSubscriptionPayload);
+
+    if (!saved) {
+      await subscription.unsubscribe();
+      setStatus('off');
+      toast.error('Push通知をONにできませんでした');
+
+      return;
+    }
+
     setStatus('on');
   }
 
@@ -62,7 +85,14 @@ export function usePushSubscription(vapidPublicKey: string) {
     const subscription = await registration?.pushManager.getSubscription();
 
     if (subscription) {
-      destroyPushSubscription(subscription.endpoint);
+      const destroyed = await destroyPushSubscription(subscription.endpoint);
+
+      if (!destroyed) {
+        toast.error('Push通知をOFFにできませんでした');
+
+        return;
+      }
+
       await subscription.unsubscribe();
     }
 

@@ -1,12 +1,15 @@
 import { router } from '@inertiajs/react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { act } from 'react';
+import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePushSubscription } from './usePushSubscription';
 
 vi.mock('@inertiajs/react', () => ({
   router: { post: vi.fn(), delete: vi.fn() },
 }));
+
+vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -81,6 +84,32 @@ function stubPushEnvironment({
   }
 
   return { pushManager, requestPermission, created };
+}
+
+type VisitOptions = { onSuccess: () => void; onFinish: () => void };
+
+function respondToStore(saved: boolean) {
+  vi.mocked(router.post).mockImplementationOnce(((
+    _url: string,
+    _data: unknown,
+    options: VisitOptions,
+  ) => {
+    if (saved) {
+      options.onSuccess();
+    }
+
+    options.onFinish();
+  }) as never);
+}
+
+function respondToDestroy(destroyed: boolean) {
+  vi.mocked(router.delete).mockImplementationOnce(((_url: string, options: VisitOptions) => {
+    if (destroyed) {
+      options.onSuccess();
+    }
+
+    options.onFinish();
+  }) as never);
 }
 
 afterEach(() => {
@@ -212,34 +241,91 @@ describe('subscribe', () => {
             p256dh: 'BpublicKeyForTest',
           },
         },
-        {
-          preserveScroll: true,
-          preserveState: true,
-        },
+        expect.objectContaining({ preserveScroll: true, preserveState: true }),
       );
     });
+  });
+
+  it('保存できればonになる', async () => {
+    stubPushEnvironment({ permission: 'granted' });
+    respondToStore(true);
+    const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
+
+    await act(() => result.current.subscribe());
+
+    expect(result.current.status).toBe('on');
+  });
+
+  it('保存に失敗すれば購読を解除して off に戻す', async () => {
+    const { created } = stubPushEnvironment({ permission: 'granted' });
+    respondToStore(false);
+    const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
+
+    await act(() => result.current.subscribe());
+
+    expect(created.unsubscribe).toHaveBeenCalled();
+    expect(result.current.status).toBe('off');
+    expect(toast.error).toHaveBeenCalled();
+  });
+
+  it('購読そのものに失敗した場合、offのままにする', async () => {
+    const { pushManager } = stubPushEnvironment({ permission: 'granted' });
+    pushManager.subscribe.mockRejectedValueOnce(new Error('failed'));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
+
+    await act(() => result.current.subscribe());
+
+    expect(router.post).not.toHaveBeenCalled();
+    expect(result.current.status).toBe('off');
+    expect(toast.error).toHaveBeenCalled();
   });
 });
 
 describe('unsubscribe', () => {
   it('購読があればAPIに削除を送り、端末側も解除して off になる', async () => {
-    stubPushEnvironment({ permission: 'granted', subscription: pushSubscription() });
+    const subscription = pushSubscription();
+
+    stubPushEnvironment({ permission: 'granted', subscription });
+    respondToDestroy(true);
     const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
 
-    act(() => {
-      result.current.unsubscribe();
+    await waitFor(() => {
+      expect(result.current.status).toBe('on');
     });
 
-    await waitFor(() => {
-      expect(router.delete).toHaveBeenCalledWith('/app/push-subscriptions', {
+    await act(() => result.current.unsubscribe());
+
+    expect(router.delete).toHaveBeenCalledWith(
+      '/app/push-subscriptions',
+      expect.objectContaining({
         data: {
           endpoint: 'https://fcm.googleapis.com/fcm/send/abc123',
         },
         preserveScroll: true,
         preserveState: true,
-      });
-      expect(result.current.status).toBe('off');
+      }),
+    );
+    expect(subscription.unsubscribe).toHaveBeenCalled();
+    expect(result.current.status).toBe('off');
+  });
+
+  it('サーバで削除できなければ端末側の購読を残して on のままにする', async () => {
+    const subscription = pushSubscription();
+
+    stubPushEnvironment({ permission: 'granted', subscription });
+    respondToDestroy(false);
+    const { result } = renderHook(() => usePushSubscription(VAPID_KEY));
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('on');
     });
+
+    await act(() => result.current.unsubscribe());
+
+    expect(subscription.unsubscribe).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalled();
+    expect(result.current.status).toBe('on');
   });
 
   it('購読が無ければ何も送らずに off にする', async () => {
