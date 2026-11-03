@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 
 use function Pest\Laravel\assertAuthenticated;
@@ -117,5 +119,20 @@ describe('register.store', function () {
             'name' => 'test',
             'email' => 'test@example.com',
         ]);
+    });
+
+    it('登録すると確認メールを送り、未確認のまま作る', function () {
+        Notification::fake();
+
+        post(route('register.store'), [
+            'name' => 'test',
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertValid();
+
+        $user = User::where('email', 'test@example.com')->firstOrFail();
+        expect($user->hasVerifiedEmail())->toBeFalse();
+        Notification::assertSentTo($user, VerifyEmail::class);
     });
 });

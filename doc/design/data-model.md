@@ -28,7 +28,7 @@ admin ──┬─< categories ──< products ──< stocks >── users ─
 | `id` | bigserial | PK | |
 | `name` | varchar(255) | NOT NULL | ユーザ名 |
 | `email` | varchar(255) | NOT NULL, UNIQUE | ログインID |
-| `email_verified_at` | timestamptz | NULL可 | 未使用。メール確認の機能は入れていない |
+| `email_verified_at` | timestamptz | NULL可 | メールアドレスの確認が済んだ日時。`NULL` なら未確認 |
 | `password` | varchar(255) | NOT NULL | ハッシュ済み |
 | `two_factor_secret` | text | NULL可 | Fortify の2要素認証用。画面からは使っていない |
 | `two_factor_recovery_codes` | text | NULL可 | 同上 |

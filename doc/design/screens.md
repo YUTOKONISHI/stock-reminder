@@ -14,6 +14,7 @@
 | 新規登録 | `/app/register` | `auth/register` | 不要 |
 | パスワード忘却 | `/app/forgot-password` | `auth/forgot-password` | 不要 |
 | パスワード再設定 | `/app/reset-password` | `auth/reset-password` | 不要 |
+| メール確認待ち | `/app/email/verify` | `auth/verify-email` | 要（未確認でも開ける） |
 | ダッシュボード | `/app/dashboard` | `dashboard` | 要 |
 | ストック一覧 | `/app/stocks` | `stocks/index` | 要 |
 | ストック新規登録 | `/app/stocks/create` | `stocks/form` | 要 |
@@ -21,6 +22,8 @@
 | Push通知 | `/app/notifications` | `notifications` | 要 |
 | 設定メニュー | `/app/settings` | `settings/index` | 要 |
 | 個人情報の変更 | `/app/settings/profile` | `settings/profile` | 要 |
+
+認証が「要」の画面は、メールアドレスの確認が済んでいることも求める。
 
 ストックの新規登録と編集は同じページ部品を使う。
 `stock` プロップが `null` なら新規、値が入っていれば編集として描く。
@@ -55,7 +58,7 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
             │        └─▶ /app/forgot-password ──(仮パスワード送信)──▶ /app/reset-password
             │                                                              │
             │                                                    (再設定)──▶ /app/login
-            └─▶ /app/register ──(成功)──▶ /app/dashboard
+            └─▶ /app/register ──(成功)──▶ /app/email/verify ──(メールのリンク)──▶ /app/dashboard
 
 /app/dashboard ─┬─▶ /app/stocks ─┬─▶ /app/stocks/create
                 │                └─▶ /app/stocks/{id}/edit
@@ -68,6 +71,7 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 ストック一覧への導線はダッシュボードの中にある。
 
 未ログインで認証が要る画面を開くと、`/app/*` は `/app/login` に、`/admin/*` は `/admin/login` に転送する。
+メールアドレスの確認が済んでいない利用者が `/app/*` の画面を開くと、`/app/email/verify` に転送する。
 
 ### 管理者
 
@@ -110,7 +114,7 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 | POST | `/app/push-subscriptions` | `push-subscriptions.store` | Push購読の登録 |
 | DELETE | `/app/push-subscriptions` | `push-subscriptions.destroy` | Push購読の削除 |
 
-`/app/dashboard` 以降は `auth` ミドルウェアの下にある。
+`/app/dashboard` 以降は `auth` と `verified` ミドルウェアの下にある。
 
 パスワード忘却と再設定の POST には `throttle:6,1`（同一IPから毎分6回まで）を掛けている。
 
@@ -125,6 +129,9 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 | POST | `/app/logout` | `logout` | ログアウト |
 | GET | `/app/register` | `register` | 新規登録画面 |
 | POST | `/app/register` | `register.store` | アカウント作成 |
+| GET | `/app/email/verify` | `verification.notice` | メール確認待ち画面 |
+| GET | `/app/email/verify/{id}/{hash}` | `verification.verify` | メールアドレスの確認（署名付き） |
+| POST | `/app/email/verification-notification` | `verification.send` | 確認メールの再送 |
 
 ### 管理者
 
@@ -162,6 +169,6 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 `AppShell` はヘッダー、下部ナビゲーション、トースト表示枠を持ち、`title` と現在位置を表す `active` を受け取る。
 レスポンシブ対応はここに集約している。
 
-認証まわりの画面（ログイン、新規登録、パスワード忘却、パスワード再設定）は `shared/components/AuthCard.tsx` を使う。
+認証まわりの画面（ログイン、新規登録、パスワード忘却、パスワード再設定、メール確認待ち）は `shared/components/AuthCard.tsx` を使う。
 
 管理画面は `features/admin/components/AdminHeader.tsx` を持つが、レスポンシブ対応の対象外である。

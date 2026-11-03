@@ -45,6 +45,12 @@ class FortifyServiceProvider extends ServiceProvider
             PrepareAuthenticatedSession::class,
         ]));
 
+        Fortify::verifyEmailView(function (Request $request) {
+            return Inertia::render('auth/verify-email', [
+                'expired' => $request->boolean('expired'),
+            ]);
+        });
+
         Fortify::loginView(function () {
             return Inertia::render('auth/login');
         });

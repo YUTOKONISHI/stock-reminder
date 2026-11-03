@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
@@ -29,6 +31,19 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureRateLimiting();
+
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
+            $expiresInMinutes = (int) config('auth.verification.expire', 60);
+
+            return (new MailMessage)
+                ->subject('メールアドレスの確認')
+                ->greeting('ご登録ありがとうございます')
+                ->line('下のボタンを押して、メールアドレスの確認を完了してください。')
+                ->action('メールアドレスを確認する', $url)
+                ->line('このリンクは'.$expiresInMinutes.'分で使えなくなります。')
+                ->line('お心当たりがない場合は、このメールを破棄してください。')
+                ->salutation('ストック管理システム');
+        });
     }
 
     /**
