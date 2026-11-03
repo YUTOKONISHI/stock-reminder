@@ -16,7 +16,7 @@ class UpdateProductRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('products')->ignore($this->route('product'))],
             'category_id' => ['required', 'exists:categories,id'],
-            'default_consumption_interval_days' => ['required', 'integer', 'min:1'],
+            'default_consumption_interval_days' => ['required', 'integer', 'min:1', 'max:365'],
         ];
     }
 }

@@ -16,8 +16,8 @@ class StoreStockRequest extends FormRequest
     {
         return [
             'product_id' => ['required', 'exists:products,id', Rule::unique('stocks')->where('user_id', Auth::id())],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'consumption_interval_days' => ['required', 'integer', 'min:1'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:99'],
+            'consumption_interval_days' => ['required', 'integer', 'min:1', 'max:365'],
             'next_purchase_date' => ['nullable', 'date_format:Y-m-d'],
         ];
     }

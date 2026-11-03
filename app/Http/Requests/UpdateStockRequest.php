@@ -13,8 +13,8 @@ class UpdateStockRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'quantity' => ['required', 'integer', 'min:1'],
-            'consumption_interval_days' => ['required', 'integer', 'min:1'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:99'],
+            'consumption_interval_days' => ['required', 'integer', 'min:1', 'max:365'],
             'next_purchase_date' => ['nullable', 'date_format:Y-m-d'],
         ];
     }

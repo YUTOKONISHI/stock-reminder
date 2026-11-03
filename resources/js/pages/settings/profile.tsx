@@ -166,7 +166,7 @@ export default function Profile() {
                 <FormItem>
                   <FormLabel>世帯人数</FormLabel>
                   <FormControl>
-                    <Input type="number" min={1} {...field} />
+                    <Input type="number" min={1} max={20} {...field} />
                   </FormControl>
                   <FormDescription>
                     消費日数の初期値の算出に使います。空のままでも保存できます。
