@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { captureInstallPrompt } from '../installPrompt';
 import { InstallCard } from './InstallCard';
@@ -40,6 +41,12 @@ afterEach(() => {
 });
 
 describe('出す条件', () => {
+  it('サーバーで描くときは手順が要る環境でも出さない', () => {
+    stubManualInstallEnvironment();
+
+    expect(renderToString(<InstallCard />)).toBe('');
+  });
+
   it('イベントが届かず手順も要らない環境では出さない', () => {
     render(<InstallCard />);
 

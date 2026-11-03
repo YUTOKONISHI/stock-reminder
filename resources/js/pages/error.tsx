@@ -5,7 +5,7 @@ import {
   faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Button } from '@/shared/components/ui/button';
 
 type Props = {
@@ -50,9 +50,8 @@ const getErrorInformation = (code: number) => {
 export default function ErrorPage({ code }: Props) {
   const { icon, iconClass, title, message } = getErrorInformation(code);
   const canRetry = code !== 403 && code !== 404;
-  const dashboardUrl = window.location.pathname.startsWith('/admin/')
-    ? '/admin/dashboard'
-    : '/app/dashboard';
+  const { url } = usePage();
+  const dashboardUrl = url.startsWith('/admin/') ? '/admin/dashboard' : '/app/dashboard';
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink">

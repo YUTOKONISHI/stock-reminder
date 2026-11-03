@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { renderHook, waitFor } from '@testing-library/react';
-import { act } from 'react';
+import { act, createElement } from 'react';
+import { renderToString } from 'react-dom/server';
 import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePushSubscription } from './usePushSubscription';
@@ -117,6 +118,21 @@ afterEach(() => {
 });
 
 describe('status の判定', () => {
+  it('サーバーで描くときは端末を見ずに checking になる', () => {
+    stubPushEnvironment({ permission: 'granted' });
+    let status: string | undefined;
+
+    function Probe() {
+      status = usePushSubscription(VAPID_KEY).status;
+
+      return null;
+    }
+
+    renderToString(createElement(Probe));
+
+    expect(status).toBe('checking');
+  });
+
   it('Service Worker が無ければ unsupported になる', () => {
     vi.stubGlobal('PushManager', class {});
     vi.stubGlobal('Notification', { permission: 'default' });

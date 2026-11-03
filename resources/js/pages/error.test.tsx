@@ -2,8 +2,11 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import ErrorPage from './error';
 
+const page = vi.hoisted(() => ({ url: '/' }));
+
 vi.mock('@inertiajs/react', () => ({
   Head: () => null,
+  usePage: () => page,
   Link: ({ href, children }: { href: string; children?: React.ReactNode }) => (
     <a href={href}>{children}</a>
   ),
@@ -33,7 +36,7 @@ describe('ErrorPage', () => {
     { path: '/admin/foo', href: '/admin/dashboard' },
     { path: '/app/foo', href: '/app/dashboard' },
   ])('$path では $href へ戻る', ({ path, href }) => {
-    window.history.pushState({}, '', path);
+    page.url = path;
     render(<ErrorPage code={404} />);
     expect(screen.getByRole('link', { name: 'ダッシュボードへ戻る' })).toHaveAttribute(
       'href',

@@ -8,10 +8,6 @@ import { registerRequestErrorToasts } from '@/shared/lib/registerRequestErrorToa
  * 二重になり、差し込みが間に合わない一瞬だけアイコンが原寸で出る。 */
 config.autoAddCss = false;
 
-captureInstallPrompt();
-
-registerRequestErrorToasts();
-
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
@@ -22,8 +18,19 @@ createInertiaApp({
   },
 });
 
-if (import.meta.env.PROD && 'serviceWorker' in navigator && location.pathname.startsWith('/app/')) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/app/sw.js');
-  });
+/* SSR では本ファイルが Node 上でも評価される。 */
+if (typeof window !== 'undefined') {
+  captureInstallPrompt();
+
+  registerRequestErrorToasts();
+
+  if (
+    import.meta.env.PROD &&
+    'serviceWorker' in navigator &&
+    location.pathname.startsWith('/app/')
+  ) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/app/sw.js');
+    });
+  }
 }
