@@ -125,6 +125,24 @@ describe('store', function () {
                 'default_consumption_interval_days' => '消費間隔を入力してください。',
             ]);
     });
+
+    it('消費間隔は365日を超えることはできない', function () {
+        post(route('admin.products.store'), [
+            'name' => 'トイレットペーパー',
+            'category_id' => Category::factory()->create()->id,
+            'default_consumption_interval_days' => 366,
+        ])
+            ->assertInvalid(['default_consumption_interval_days' => '消費間隔は365以下の値にしてください。']);
+    });
+
+    it('消費間隔は1日未満にはできない', function () {
+        post(route('admin.products.store'), [
+            'name' => 'トイレットペーパー',
+            'category_id' => Category::factory()->create()->id,
+            'default_consumption_interval_days' => 0,
+        ])
+            ->assertInvalid(['default_consumption_interval_days' => '消費間隔は1以上の値にしてください。']);
+    });
 });
 
 describe('update', function () {
@@ -179,6 +197,23 @@ describe('update', function () {
                 'category_id' => 'カテゴリを入力してください。',
                 'default_consumption_interval_days' => '消費間隔を入力してください。',
             ]);
+    });
+
+    it('消費間隔は365日を超えることはできない', function () {
+        $daily = Category::factory()->create(['name' => '日用品']);
+        $product = Product::factory()->create([
+            'name' => 'トイレットペーパー',
+            'category_id' => $daily->id,
+            'default_consumption_interval_days' => 14,
+        ]);
+        put(route('admin.products.update', $product), [
+            'name' => $product->name,
+            'category_id' => $daily->id,
+            'default_consumption_interval_days' => 366,
+        ])
+            ->assertInvalid(['default_consumption_interval_days' => '消費間隔は365以下の値にしてください。']);
+
+        expect($product->refresh()->default_consumption_interval_days)->toBe(14);
     });
 });
 

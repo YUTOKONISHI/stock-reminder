@@ -63,6 +63,16 @@ describe('update', function () {
         ]);
     });
 
+    it('世帯人数は20人を超えることはできない', function () {
+        $input = [
+            'name' => '太郎',
+            'household_size' => 21,
+        ];
+        put(route('profile.update'), $input)
+            ->assertInvalid(['household_size' => '世帯人数は20以下の値にしてください。'])
+            ->assertRedirectBack();
+    });
+
     it('名前が空なら弾く', function () {
         $user = User::findOrFail(Auth::guard('web')->id());
         $input = [

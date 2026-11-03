@@ -160,12 +160,13 @@ export default function StockForm({ products, stock }: Props) {
               rules={{
                 required: 'ストック数を入力してください',
                 min: { value: 1, message: 'ストック数は1以上で入力してください' },
+                max: { value: 99, message: 'ストック数は99以下で入力してください' },
               }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>ストック数</FormLabel>
                   <FormControl>
-                    <Input type="number" min={1} placeholder="ストック数" {...field} />
+                    <Input type="number" min={1} max={99} placeholder="ストック数" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -178,6 +179,7 @@ export default function StockForm({ products, stock }: Props) {
               rules={{
                 required: '消費日数を入力してください',
                 min: { value: 1, message: '消費日数は1以上で入力してください' },
+                max: { value: 365, message: '消費日数は365以下で入力してください' },
               }}
               render={({ field }) => (
                 <FormItem>
@@ -186,6 +188,7 @@ export default function StockForm({ products, stock }: Props) {
                     <Input
                       type="number"
                       min={1}
+                      max={365}
                       placeholder="消費日数"
                       {...field}
                       onChange={(event) => {

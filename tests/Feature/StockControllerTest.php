@@ -91,10 +91,38 @@ describe('store', function () {
             'next_purchase_date' => '2026-10-05',
         ]);
     });
+
+    it('ストック数NG(max)', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+
+        actingAs($user)
+            ->post(route('stocks.store'), [
+                'product_id' => $product->id,
+                'quantity' => 100,
+                'consumption_interval_days' => 1,
+                'next_purchase_date' => now()->addDays(7)->format('Y-m-d'),
+            ])
+            ->assertInvalid(['quantity' => 'ストック数は99以下の値にしてください。']);
+    });
+
+    it('消費日数NG(max)', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+
+        actingAs($user)
+            ->post(route('stocks.store'), [
+                'product_id' => $product->id,
+                'quantity' => 1,
+                'consumption_interval_days' => 366,
+                'next_purchase_date' => now()->addDays(7)->format('Y-m-d'),
+            ])
+            ->assertInvalid(['consumption_interval_days' => '消費日数は365以下の値にしてください。']);
+    });
 });
 
 describe('update', function () {
-    it('ストック数NG', function () {
+    it('ストック数NG(min)', function () {
         $stock = Stock::factory()->create();
 
         actingAs($stock->user)
@@ -106,7 +134,19 @@ describe('update', function () {
             ->assertInvalid(['quantity' => 'ストック数は1以上の値にしてください。']);
     });
 
-    it('消費日数NG', function () {
+    it('ストック数NG(max)', function () {
+        $stock = Stock::factory()->create();
+
+        actingAs($stock->user)
+            ->put(route('stocks.update', $stock), [
+                'quantity' => 100,
+                'consumption_interval_days' => 1,
+                'next_purchase_date' => now()->addDays(7)->format('Y-m-d'),
+            ])
+            ->assertInvalid(['quantity' => 'ストック数は99以下の値にしてください。']);
+    });
+
+    it('消費日数NG(min)', function () {
         $stock = Stock::factory()->create();
 
         actingAs($stock->user)
@@ -116,6 +156,18 @@ describe('update', function () {
                 'next_purchase_date' => now()->addDays(7)->format('Y-m-d'),
             ])
             ->assertInvalid(['consumption_interval_days' => '消費日数は1以上の値にしてください。']);
+    });
+
+    it('消費日数NG(max)', function () {
+        $stock = Stock::factory()->create();
+
+        actingAs($stock->user)
+            ->put(route('stocks.update', $stock), [
+                'quantity' => 1,
+                'consumption_interval_days' => 366,
+                'next_purchase_date' => now()->addDays(7)->format('Y-m-d'),
+            ])
+            ->assertInvalid(['consumption_interval_days' => '消費日数は365以下の値にしてください。']);
     });
 
     it('予定日が空欄なら消費日数とストック数から算出する', function () {
@@ -208,5 +260,6 @@ describe('purchase', function () {
         '未入力' => [[]],
         '0' => [['quantity' => 0]],
         '小数' => [['quantity' => 1.5]],
+        '100' => [['quantity' => 100]],
     ]);
 });

@@ -20,7 +20,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
-            'household_size' => ['nullable', 'integer', 'min:1'],
+            'household_size' => ['nullable', 'integer', 'min:1', 'max:20'],
         ])->validate();
 
         $user->forceFill([
