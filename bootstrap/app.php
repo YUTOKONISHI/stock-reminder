@@ -9,6 +9,8 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -53,5 +55,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 ...LogContext::actor(),
                 'ip' => $request->ip(),
             ];
+        });
+
+        $exceptions->respond(function (Response $response, Throwable $e, Request $request) {
+            $status = $response->getStatusCode();
+            $shouldRender = in_array($status, [403, 404, 419], true) || $status >= 500;
+            if (config('app.debug') || ! $shouldRender) {
+                return $response;
+            }
+
+            return Inertia::render('error', ['code' => $status])
+                ->toResponse($request)
+                ->setStatusCode($status);
         });
     })->create();

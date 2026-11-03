@@ -186,6 +186,46 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 
 `/api/*` へのリクエストは例外を JSON で返す設定にしてあるが、該当するルートは無い。
 
+## エラー時の表示
+
+### エラー画面
+
+`bootstrap/app.php` の `$exceptions->respond()` が、例外から作られたレスポンスのステータスコードを見て、Inertia のページコンポーネント `error` に差し替える。
+ステータスコードはそのまま保ち、props の `code` にも渡す。
+
+| ステータスコード | 見出し | 「読み込みなおす」ボタン |
+|---|---|---|
+| 403 | このページは開くことができません | 無し |
+| 404 | ページが見つかりません | 無し |
+| 419 | ページの有効期限が切れました | 有り |
+| 500 以上 | 問題が発生しました | 有り |
+
+これ以外のステータスコード（入力エラーのリダイレクトなど）は、元のレスポンスのまま返す。
+`APP_DEBUG` が有効なときも差し替えず、Laravel の詳細なエラー画面を返す。
+
+画面は `resources/js/pages/error.tsx` が描く。
+`AppShell` は使わず、ログインしていなくても同じ画面を出す。
+「読み込みなおす」は `window.location.reload()` でページ全体を読み込み直す。
+「ダッシュボードへ戻る」の行き先は、パスが `/admin/` で始まれば `/admin/dashboard`、それ以外は `/app/dashboard` である。
+
+### 通信の失敗
+
+`resources/js/shared/lib/registerRequestErrorToasts.ts` が、Inertia のイベントを `router.on` で受けてトーストを出す。
+`app.tsx` が起動時に1回呼ぶ。
+
+| イベント | 起きたこと | トースト |
+|---|---|---|
+| `networkError` | サーバに届かなかった | 通信できませんでした（接続を確認して、もう一度お試しください。） |
+| `httpException` | Inertia 形式でないレスポンスが返った | エラーが発生しました。 |
+
+どちらも `preventDefault()` で Inertia の既定の動きを止める。
+`httpException` の既定の動きは、レスポンスの HTML をモーダルで出すことである。
+
+画面は遷移せず、入力した内容も残る。
+トーストを描く `Toaster` は `AppShell`、`AuthCard`、管理画面のダッシュボードに置いてある。
+
+アプリを開く時点でオフラインなら、Service Worker がオフライン画面（`resources/pwa/offline.html`）を返す。
+
 ## バックアップ
 
 `app:backup-database` が `pg_dump` のカスタム形式でダンプを取り、`backup` ディスクの `db/YYYYMMDD-HHMMSS.dump` に送る。
