@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { needsManualInstall } from '@/shared/lib/displayMode';
+import { useHydrated } from '@/shared/lib/useHydrated';
 import { destroyPushSubscription, storePushSubscription } from '../api';
 import type { PushSubscriptionPayload } from '../api';
 
-export type PushSubscriptionStatus = 'unsupported' | 'needs-install' | 'denied' | 'off' | 'on';
+/** checking はサーバーで描くとき。端末の対応状況はブラウザでしか分からない。 */
+export type PushSubscriptionStatus =
+  'checking' | 'unsupported' | 'needs-install' | 'denied' | 'off' | 'on';
 
 export function usePushSubscription(vapidPublicKey: string) {
-  const [status, setStatus] = useState<PushSubscriptionStatus>(readStatus);
+  const hydrated = useHydrated();
+  const [changedStatus, setStatus] = useState<PushSubscriptionStatus | null>(null);
+  const status = changedStatus ?? (hydrated ? readStatus() : 'checking');
 
   useEffect(() => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {

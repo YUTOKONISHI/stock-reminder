@@ -1,5 +1,6 @@
 import { useState, useSyncExternalStore } from 'react';
 import { needsManualInstall } from '@/shared/lib/displayMode';
+import { useHydrated } from '@/shared/lib/useHydrated';
 import { getInstallPrompt, subscribeInstallPrompt, takeInstallPrompt } from '../installPrompt';
 
 const DISMISSED_KEY = 'install-card-dismissed';
@@ -24,7 +25,8 @@ function writeDismissed() {
 }
 
 export function useInstallCard() {
-  const installPrompt = useSyncExternalStore(subscribeInstallPrompt, getInstallPrompt);
+  const hydrated = useHydrated();
+  const installPrompt = useSyncExternalStore(subscribeInstallPrompt, getInstallPrompt, () => null);
   const [dismissed, setDismissed] = useState(readDismissed);
 
   function dismiss() {
@@ -49,7 +51,7 @@ export function useInstallCard() {
 
   let kind: InstallCardKind = null;
 
-  if (!dismissed) {
+  if (hydrated && !dismissed) {
     if (installPrompt !== null) {
       kind = 'prompt';
     } else if (needsManualInstall()) {
