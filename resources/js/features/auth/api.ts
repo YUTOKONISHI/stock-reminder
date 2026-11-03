@@ -4,6 +4,7 @@ import loginRoutes from '@/routes/login';
 import profileRoutes from '@/routes/profile';
 import registerRoutes from '@/routes/register';
 import resetPasswordRoutes from '@/routes/reset-password';
+import verificationRoutes from '@/routes/verification';
 
 type Errors = Record<string, string>;
 
@@ -41,4 +42,8 @@ export function resetPassword(
 
 export function deleteAccount(password: string, callbacks: Callbacks & { onFinish?: () => void }) {
   router.delete(profileRoutes.destroy.url(), { data: { password }, ...callbacks });
+}
+
+export function resendVerificationEmail(callbacks: Callbacks & { onFinish?: () => void }) {
+  router.post(verificationRoutes.send.url(), {}, callbacks);
 }

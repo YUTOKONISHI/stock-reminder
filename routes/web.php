@@ -23,7 +23,7 @@ Route::prefix('app')->group(function () {
     Route::inertia('/reset-password', 'auth/reset-password')->name('reset-password');
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->middleware('throttle:6,1')->name('reset-password.store');
 
-    Route::middleware('auth')->group(function () {
+    Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/stocks', [StockController::class, 'index'])->name('stocks.index');

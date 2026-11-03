@@ -145,6 +145,36 @@ describe('resetPassword', function () {
         expect(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0)
             ->and(DB::table('sessions')->where('user_id', $other->id)->count())->toBe(1);
     });
+
+    it('未確認のユーザーが再設定すると確認済みになる', function () {
+        $user = User::factory()->unverified()->create();
+        $temporary = issueTemporaryPassword($user);
+
+        post(route('reset-password'), [
+            'email' => $user->email,
+            'temporary_password' => $temporary,
+            'password' => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ])
+            ->assertRedirect(route('login'));
+
+        expect($user->fresh()->email_verified_at?->toDateTimeString())->toBe('2026-09-21 09:00:00');
+    });
+
+    it('確認済みのユーザーの確認日時は変えない', function () {
+        $user = User::factory()->create(['email_verified_at' => '2026-01-01 00:00:00']);
+        $temporary = issueTemporaryPassword($user);
+
+        post(route('reset-password'), [
+            'email' => $user->email,
+            'temporary_password' => $temporary,
+            'password' => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ])
+            ->assertRedirect(route('login'));
+
+        expect($user->fresh()->email_verified_at?->toDateTimeString())->toBe('2026-01-01 00:00:00');
+    });
 });
 
 describe('メールアドレスの大文字', function () {

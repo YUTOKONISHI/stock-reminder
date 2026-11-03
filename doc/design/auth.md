@@ -25,7 +25,7 @@ Laravel Fortify が担う。
 | `prefix` | `app` | Fortify のルートを `/app/` の下に出す |
 | `home` | `/app/dashboard` | ログイン後の行き先 |
 | `redirects.logout` | `/app/login` | ログアウト後の行き先 |
-| `features` | 登録、2要素認証 | パスワードリセットは含めない（後述） |
+| `features` | 登録、メール確認、2要素認証 | パスワードリセットは含めない（後述） |
 
 ### 認証の流れ
 
@@ -46,6 +46,7 @@ Fortify のビューは Inertia のページ部品に差し替える。
 |---|---|
 | ログイン | `auth/login` |
 | 新規登録 | `auth/register` |
+| メール確認待ち | `auth/verify-email` |
 
 ### アカウント作成
 
@@ -59,6 +60,30 @@ Fortify のビューは Inertia のページ部品に差し替える。
 
 世帯人数は登録時には受け取らない。
 `household_size` は `null` で作られ、設定画面から入れる。
+
+### メールアドレスの確認
+
+Fortify のメール確認を使う。
+`User` が `MustVerifyEmail` を実装しているので、登録すると Laravel の `SendEmailVerificationNotification` が確認メール（`VerifyEmail` 通知）を送る。
+文面は `AppServiceProvider` の `VerifyEmail::toMailUsing` で日本語に差し替えている。
+
+メールのリンクは署名付き URL（`/app/email/verify/{id}/{hash}`）で、60分で使えなくなる。
+開くとログイン中の利用者の `email_verified_at` に時刻が入り、`/app/dashboard` へ進む。
+
+| 場合 | 結果 |
+|---|---|
+| 未ログインで開いた | `/app/login` を経てから確認が済む |
+| 期限切れ、署名の不一致 | `/app/email/verify?expired=1` へ戻し、再送を促す（`bootstrap/app.php`） |
+| 別の利用者でログインしている | 403 のエラー画面 |
+
+`/app/*` の認証が要るルートには `verified` ミドルウェアを掛けている。
+未確認の利用者は確認待ちの画面（`auth/verify-email`）へ送られ、そこから確認メールを再送できる。
+再送とリンクの確認には、毎分6回までの制限が掛かる（Fortify の既定）。
+
+確認が済まないアカウントは消さない。
+アドレスの持ち主は、パスワード忘却から再設定すれば確認済みにできる（後述）。
+
+2026-11-03 のマイグレーションで、それ以前に登録した利用者は確認済みにした。
 
 ### 2要素認証
 
@@ -132,7 +157,7 @@ Fortify のパスワードリセットは使わない。
 1. メールアドレス、仮パスワード、新しいパスワードを受け取る
 2. `password_reset_tokens` の行を引き、仮パスワードのハッシュを照合する
 3. 発行から60分（`config('auth.passwords.users.expire')`）を過ぎていれば、行を消して失敗とする
-4. 新しいパスワードを保存し、`remember_token` を作り直す
+4. 新しいパスワードを保存し、`remember_token` を作り直す。未確認の利用者は確認済みにする（仮パスワードを受け取れたので、アドレスの持ち主と分かる）
 5. 行を消し、`/app/login` に「パスワードを再設定しました」を添えて送る
 
 行が無い、照合に失敗した、期限切れ、利用者が居ない、のいずれも同じ文言を返す。
