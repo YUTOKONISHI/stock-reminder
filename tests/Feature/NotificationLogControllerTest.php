@@ -42,6 +42,30 @@ describe('markAsRead', function () {
     });
 });
 
+describe('markAllAsRead', function () {
+    it('自分の未読を全部既読にし、既読にしたIDを返す', function () {
+        $user = User::factory()->create();
+        $unread = NotificationLog::factory(21)->for($user)->create([
+            'status' => NotificationStatus::Unread,
+        ]);
+        $alreadyRead = NotificationLog::factory()->for($user)->create([
+            'status' => NotificationStatus::Read,
+        ]);
+        $others = NotificationLog::factory()->create([
+            'status' => NotificationStatus::Unread,
+        ]);
+
+        actingAs($user)
+            ->from(route('notifications.index'))
+            ->patch(route('notifications.read-all'))
+            ->assertRedirect(route('notifications.index'))
+            ->assertInertiaFlash('readIds', $unread->pluck('id')->all());
+
+        expect($unread->fresh()->pluck('status')->unique()->all())->toBe([NotificationStatus::Read])
+            ->and($others->refresh()->status)->toBe(NotificationStatus::Unread);
+    });
+});
+
 describe('markAsUnread', function () {
     it('未読にする', function () {
         $user = User::factory()->create();
@@ -55,6 +79,33 @@ describe('markAsUnread', function () {
             ->assertRedirect(route('notifications.index'));
 
         expect($notificationLog->refresh()->status)->toBe(NotificationStatus::Unread);
+    });
+});
+
+describe('markManyAsUnread', function () {
+    it('送ったIDのうち自分の通知だけを未読に戻す', function () {
+        $user = User::factory()->create();
+        $mine = NotificationLog::factory(2)->for($user)->create([
+            'status' => NotificationStatus::Read,
+        ]);
+        $notSent = NotificationLog::factory()->for($user)->create([
+            'status' => NotificationStatus::Read,
+        ]);
+        $others = NotificationLog::factory()->create([
+            'status' => NotificationStatus::Read,
+        ]);
+
+        actingAs($user)
+            ->from(route('notifications.index'))
+            ->patch(route('notifications.unread-many'), [
+                'ids' => [...$mine->pluck('id')->all(), $others->id],
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('notifications.index'));
+
+        expect($mine->fresh()->pluck('status')->unique()->all())->toBe([NotificationStatus::Unread])
+            ->and($notSent->refresh()->status)->toBe(NotificationStatus::Read)
+            ->and($others->refresh()->status)->toBe(NotificationStatus::Read);
     });
 });
 

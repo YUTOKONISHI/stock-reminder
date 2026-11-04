@@ -36,7 +36,9 @@ Route::prefix('app')->group(function () {
 
         Route::get('/notifications', [NotificationLogController::class, 'index'])->name('notifications.index');
         Route::patch('/notifications/{notificationLog}/read', [NotificationLogController::class, 'markAsRead'])->name('notifications.read');
+        Route::patch('/notifications/read-all', [NotificationLogController::class, 'markAllAsRead'])->name('notifications.read-all');
         Route::patch('/notifications/{notificationLog}/unread', [NotificationLogController::class, 'markAsUnread'])->name('notifications.unread');
+        Route::patch('/notifications/unread', [NotificationLogController::class, 'markManyAsUnread'])->name('notifications.unread-many');
 
         Route::inertia('/settings', 'settings/index')->name('settings.index');
         Route::get('/settings/profile', [ProfileController::class, 'index'])->name('profile.edit');
