@@ -6,7 +6,9 @@ use App\Enums\NotificationStatus;
 use Carbon\CarbonImmutable;
 use Database\Factories\NotificationLogFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -38,7 +40,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class NotificationLog extends Model
 {
     /** @use HasFactory<NotificationLogFactory> */
-    use HasFactory;
+    use HasFactory, MassPrunable;
+
+    const RETENTION_DAYS = 90;
+
+    /** @return Builder<NotificationLog> */
+    public function prunable(): Builder
+    {
+        return static::where('created_at', '<=', now()->subDays(self::RETENTION_DAYS));
+    }
 
     /** @return array<string, string> */
     protected function casts(): array
