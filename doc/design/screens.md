@@ -107,6 +107,8 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 | GET | `/app/notifications` | `notifications.index` | Push通知画面 |
 | PATCH | `/app/notifications/{notificationLog}/read` | `notifications.read` | 通知を既読にする |
 | PATCH | `/app/notifications/{notificationLog}/unread` | `notifications.unread` | 通知を未読に戻す |
+| PATCH | `/app/notifications/read-all` | `notifications.read-all` | 未読の通知をすべて既読にする |
+| PATCH | `/app/notifications/unread` | `notifications.unread-many` | 指定した通知をまとめて未読に戻す |
 | GET | `/app/settings` | `settings.index` | 設定メニュー |
 | GET | `/app/settings/profile` | `profile.edit` | 個人情報の変更画面 |
 | PUT | `/app/settings/profile` | `profile.update` | 個人情報の更新 |

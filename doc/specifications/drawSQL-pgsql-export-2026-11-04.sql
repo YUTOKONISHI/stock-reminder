@@ -219,6 +219,8 @@ CREATE TABLE "notification_logs"(
     WITH
         TIME zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX "notification_logs_user_id_status_created_at_index" ON
+    "notification_logs"("user_id", "status", "created_at");
 ALTER TABLE
     "notification_logs" ADD PRIMARY KEY("id");
 COMMENT
