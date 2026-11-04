@@ -154,7 +154,7 @@ API化は既存画面すべてに波及するため実施しない。
 
 # DB設計
 - https://drawsql.app/teams/konishi/diagrams/portfolio/docs
-- エクスポート: doc/specifications/drawSQL-pgsql-export-2026-11-01.sql
+- エクスポート: doc/specifications/drawSQL-pgsql-export-2026-11-04.sql
 - 図の正本はdrawSQL側にある。設計を変えたらエクスポートし直す
 
 # 開発ルール

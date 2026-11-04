@@ -1,7 +1,7 @@
 # データ設計
 
 PostgreSQL を使う。
-図の正本は drawSQL 側にあり、エクスポートは `doc/specifications/drawSQL-pgsql-export-2026-11-01.sql` に置く。
+図の正本は drawSQL 側にあり、エクスポートは `doc/specifications/drawSQL-pgsql-export-2026-11-04.sql` に置く。
 本書はマイグレーションから起こした列の一覧である。
 
 日時列はすべて `timestamptz` で持つ。日付だけの値は `date` で持つ。
@@ -100,6 +100,8 @@ admin ──┬─< categories ──< products ──< stocks >── users ─
 | `description` | text | NOT NULL | 通知の本文 |
 | `status` | text | NOT NULL | 既読状態。`unread` または `read` |
 | `created_at` / `updated_at` | timestamptz | NOT NULL | |
+
+`(user_id, status, created_at)` に複合インデックスを持つ。Push通知画面の「利用者の未読を新しい順に」の検索と、一括既読の絞り込みに使う。
 
 `status` は `App\Enums\NotificationStatus` にキャストする。
 
