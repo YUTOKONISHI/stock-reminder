@@ -133,11 +133,21 @@ VAPID の公開鍵は `NotificationLogController::index` が `vapidPublicKey` �
 |---|---|---|
 | 既読にする | `PATCH /app/notifications/{notificationLog}/read` | `status` を `read` にして元の画面に戻る |
 | 未読に戻す | `PATCH /app/notifications/{notificationLog}/unread` | `status` を `unread` にして元の画面に戻る |
+| すべて既読にする | `PATCH /app/notifications/read-all` | 自分の未読を全部 `read` にし、既読にしたIDを flash の `readIds` に載せて元の画面に戻る |
+| まとめて未読に戻す | `PATCH /app/notifications/unread` | 本文の `ids` のうち、自分の通知だけを `unread` にして元の画面に戻る |
 
-どちらも、対象の `user_id` がログイン中の利用者と違えば 403 を返す。
+1件ずつの操作は、対象の `user_id` がログイン中の利用者と違えば 403 を返す。
+まとめて未読に戻すときは、他人の通知のIDは何もせずに無視する。
+
+すべて既読にするときは、未読のIDを先に取り、そのIDだけを更新する。
+間に新しい通知が積まれても、既読にしたものと `readIds` が食い違わない。
 
 既読にすると「既読にしました」のトーストが出て、「元に戻す」から未読に戻せる。
-消えた通知を取り戻す導線はこれだけである。
+すべて既読にしたときは「N件を既読にしました」と出て、「元に戻す」で `readIds` を送り返す。
+消えた通知を取り戻す導線はこのトーストだけである。
+
+作成から90日（`NotificationLog::RETENTION_DAYS`）を過ぎた履歴は、既読かどうかに関係なく、毎日3時（`Asia/Tokyo`）に `model:prune` が消す。
+`MassPrunable` なので、1件ずつではなく `DELETE` 文でまとめて消す。
 
 履歴を既読にしても通知は止まらない。
 翌朝も同じ条件で通知が来る。
