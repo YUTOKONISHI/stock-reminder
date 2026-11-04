@@ -31,7 +31,7 @@ describe('PWA のファイル', function () {
     ]);
 
     it('ビルドが変わると Service Worker の中身も変わる', function () {
-        Vite::shouldReceive('manifestHash')->andReturn('build-a', 'build-b');
+        Vite::partialMock()->shouldReceive('manifestHash')->andReturn('build-a', 'build-b');
 
         $first = get('/app/sw.js')->getContent();
         $second = get('/app/sw.js')->getContent();
