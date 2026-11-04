@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -40,7 +41,8 @@ class AppServiceProvider extends ServiceProvider
                 ->greeting('ご登録ありがとうございます')
                 ->line('下のボタンを押して、メールアドレスの確認を完了してください。')
                 ->action('メールアドレスを確認する', $url)
-                ->line('このリンクは'.$expiresInMinutes.'分で使えなくなります。')
+                ->line('このリンクは'.$expiresInMinutes.'分で使えなくなります。使えなくなったときは、ログインして確認メールを再送してください。')
+                ->line('登録から'.User::LIMIT_DAY.'日以内に確認が済まない場合、登録は取り消されます。')
                 ->line('お心当たりがない場合は、このメールを破棄してください。')
                 ->salutation('ストック管理システム');
         });

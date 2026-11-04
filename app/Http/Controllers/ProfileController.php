@@ -71,12 +71,7 @@ class ProfileController extends Controller
 
         Auth::guard('web')->logout();
 
-        DB::transaction(function () use ($user) {
-            $user->pushSubscriptions()->delete();
-            DB::table('password_reset_tokens')->where('email', $user->email)->delete();
-            DB::table('sessions')->where('user_id', $user->id)->delete();
-            $user->delete();
-        });
+        $user->prune();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
