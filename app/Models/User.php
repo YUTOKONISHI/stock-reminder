@@ -7,13 +7,16 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use NotificationChannels\WebPush\PushSubscription;
 
@@ -65,6 +68,12 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasPushSubscriptions, Notifiable;
 
+    use Prunable {
+        prune as pruneOutsideTransaction;
+    }
+
+    const LIMIT_DAY = 7;
+
     /**
      * Get the attributes that should be cast.
      *
@@ -76,6 +85,25 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function prune(): ?bool
+    {
+        return DB::transaction(fn () => $this->pruneOutsideTransaction());
+    }
+
+    /** @return Builder<User> */
+    public function prunable(): Builder
+    {
+        return static::whereNull('email_verified_at')
+            ->where('created_at', '<=', now()->subDays(self::LIMIT_DAY));
+    }
+
+    protected function pruning(): void
+    {
+        $this->pushSubscriptions()->delete();
+        DB::table('password_reset_tokens')->where('email', $this->email)->delete();
+        DB::table('sessions')->where('user_id', $this->id)->delete();
     }
 
     /** @return HasMany<Stock, $this> */

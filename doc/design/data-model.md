@@ -150,4 +150,4 @@ admin ──┬─< categories ──< products ──< stocks >── users ─
 
 利用者を削除すると、そのストックと通知履歴は CASCADE で消える。
 `push_subscriptions` はポリモーフィックで外部キーが無く、`password_reset_tokens` と `sessions` にも外部キーが無い。
-この3つはアカウントの削除の処理で明示的に消す（[auth.md](auth.md)）。
+この3つは `User::pruning()` で明示的に消す。アカウントの削除と、未確認のアカウントの自動削除の両方がこれを通る（[auth.md](auth.md)）。
