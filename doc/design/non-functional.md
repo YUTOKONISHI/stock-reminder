@@ -177,7 +177,8 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 | 対策 | 実現方法 |
 |---|---|
 | CSRF | Laravel の `web` ミドルウェアグループが担う。Inertia が `XSRF-TOKEN` クッキーを送り返す |
-| XSS | React が描画時にエスケープする。`dangerouslySetInnerHTML` は使わない |
+| XSS | React が描画時にエスケープする。`dangerouslySetInnerHTML` は使わない。入り込んだスクリプトは CSP で動かさない |
+| クリックジャッキング | `X-Frame-Options: DENY` と CSP の `frame-ancestors 'none'` で、他のサイトの `iframe` に表示させない |
 | パスワードの保管 | モデルの `hashed` キャストでハッシュ化する。`password` と `remember_token` は JSON から隠す |
 | 総当たり | 一般ユーザーと管理者のログインはどちらも毎分5回、パスワード忘却、再設定、アカウントの削除は毎分6回に制限する |
 | 越権 | ストックと通知履歴の操作は、対象の `user_id` を照合して違えば 403 を返す |
@@ -185,6 +186,48 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 | 本番での破壊的なDB操作 | `DB::prohibitDestructiveCommands` を本番で有効にする |
 
 `/api/*` へのリクエストは例外を JSON で返す設定にしてあるが、該当するルートは無い。
+
+### セキュリティヘッダ
+
+`SetSecurityHeaders` ミドルウェアが、レスポンスに次のヘッダを付ける。
+`bootstrap/app.php` の `$middleware->append()` で登録しているので、`web` グループを通らない `routes/pwa.php` のルートと、どのルートにも当たらない 404 にも付く。
+
+| ヘッダ | 値 |
+|---|---|
+| `Content-Security-Policy` | 下の表 |
+| `X-Frame-Options` | `DENY` |
+| `X-Content-Type-Options` | `nosniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Strict-Transport-Security` | `max-age=31536000`。本番だけ |
+
+CSP の値は次のとおり。
+フォントはビルド時に取り込んで `public/build` から配っているので、外部のドメインは許可していない。
+
+| 項目 | 値 |
+|---|---|
+| `default-src` | `'self'` |
+| `script-src` | `'self' 'nonce-…'` |
+| `style-src` | `'self' 'unsafe-inline'` |
+| `img-src` | `'self' data:` |
+| `font-src` | `'self'` |
+| `connect-src` | `'self'` |
+| `object-src` | `'none'` |
+| `base-uri` | `'self'` |
+| `form-action` | `'self'` |
+| `frame-ancestors` | `'none'` |
+
+nonce はリクエストごとに `Vite::useCspNonce()` で作り、`@vite`、`@viteReactRefresh`、`@fonts` が書き出すタグに付く。
+コントローラがページを描画する前に作る必要があるので、ミドルウェアは `$next($request)` より前に呼ぶ。
+
+`style-src` には nonce を書かない。
+Radix がポップオーバーなどの位置を `style` 属性で指定しており、これを通すには `'unsafe-inline'` が要る。
+CSP の仕様では、nonce を書くと `'unsafe-inline'` が無視される。
+
+`npm run dev` の間（`Vite::isRunningHot()` が真のとき）は、`public/hot` に書かれた開発サーバの URL を `script-src`、`style-src`、`font-src`、`img-src`、`connect-src` に足す。
+`connect-src` には、HMR の WebSocket 用に `ws://` の URL も足す。
+
+FrankenPHP が `public` から直接返す静的ファイル（ビルド済みの JS と CSS、フォント、アイコン）は PHP を通らないので、ヘッダが付かない。
+CSP とクリックジャッキング対策が効くのは HTML のページなので、守りは変わらない。
 
 ## エラー時の表示
 

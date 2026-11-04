@@ -17,7 +17,7 @@
 | [stock.md](stock.md) | ストック管理とダッシュボード |
 | [notification.md](notification.md) | Push通知の購読、配信、履歴 |
 | [admin.md](admin.md) | 管理者向けのマスタ管理 |
-| [non-functional.md](non-functional.md) | PWA、ログ、タイムゾーン、セキュリティ、エラー時の表示 |
+| [non-functional.md](non-functional.md) | PWA、ログ、タイムゾーン、セキュリティ（セキュリティヘッダを含む）、エラー時の表示 |
 
 設計を変えた経緯と、採用しなかった案は `doc/plans/` にある。
 本書は現時点の姿だけを書き、理由は書かない。
