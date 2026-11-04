@@ -45,19 +45,13 @@ class FortifyServiceProvider extends ServiceProvider
             PrepareAuthenticatedSession::class,
         ]));
 
-        Fortify::verifyEmailView(function (Request $request) {
-            return Inertia::render('auth/verify-email', [
-                'expired' => $request->boolean('expired'),
-            ]);
-        });
+        Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verify-email', [
+            'expired' => $request->boolean('expired'),
+        ]));
 
-        Fortify::loginView(function () {
-            return Inertia::render('auth/login');
-        });
+        Fortify::loginView(fn () => Inertia::render('auth/login'));
 
-        Fortify::registerView(function () {
-            return Inertia::render('auth/register');
-        });
+        Fortify::registerView(fn () => Inertia::render('auth/register'));
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
@@ -65,8 +59,6 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($throttleKey);
         });
 
-        RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
-        });
+        RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)->by($request->session()->get('login.id')));
     }
 }
