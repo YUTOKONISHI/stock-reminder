@@ -47,3 +47,22 @@ export function markNotificationAsRead(id: number, onSuccess: () => void) {
 export function markNotificationAsUnread(id: number) {
   router.patch(notifications.unread.url(id), {}, { preserveScroll: true });
 }
+
+export function markAllNotificationsAsRead(onRead: (ids: number[]) => void) {
+  router.patch(
+    notifications.readAll.url(),
+    {},
+    {
+      preserveScroll: true,
+      onFlash: ({ readIds }) => {
+        if (readIds !== undefined) {
+          onRead(readIds);
+        }
+      },
+    },
+  );
+}
+
+export function markNotificationsAsUnread(ids: number[]) {
+  router.patch(notifications.unreadMany.url(), { ids }, { preserveScroll: true });
+}

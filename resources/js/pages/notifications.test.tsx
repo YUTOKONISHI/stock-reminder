@@ -62,7 +62,10 @@ function renderPage(notifications: NotificationLog[] = [notification()]) {
 }
 
 function patchOptions(call = 0) {
-  return vi.mocked(router.patch).mock.calls[call][2] as { onSuccess?: () => void };
+  return vi.mocked(router.patch).mock.calls[call][2] as {
+    onSuccess?: () => void;
+    onFlash?: (flash: { readIds?: number[] }) => void;
+  };
 }
 
 beforeEach(() => {
@@ -127,6 +130,47 @@ describe('通知の履歴', () => {
     (options as unknown as { action: { onClick: () => void } }).action.onClick();
 
     expect(router.patch).toHaveBeenCalledWith('/app/notifications/5/unread', {}, expect.anything());
+  });
+});
+
+describe('すべて既読', () => {
+  it('未読があるときだけ出す', () => {
+    const { unmount } = renderPage([notification()]);
+
+    expect(screen.getByRole('button', { name: 'すべて既読' })).toBeInTheDocument();
+
+    unmount();
+    renderPage([]);
+
+    expect(screen.queryByRole('button', { name: 'すべて既読' })).not.toBeInTheDocument();
+  });
+
+  it('押すと未読をまとめて既読にする', () => {
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'すべて既読' }));
+
+    expect(router.patch).toHaveBeenCalledWith('/app/notifications/read-all', {}, expect.anything());
+  });
+
+  it('既読にした件数をトーストに出し、「元に戻す」で同じIDを未読へ戻す', () => {
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'すべて既読' }));
+
+    patchOptions().onFlash?.({ readIds: [3, 7] });
+
+    const [message, options] = vi.mocked(toast.success).mock.calls[0];
+
+    expect(message).toBe('2件を既読にしました');
+
+    (options as unknown as { action: { onClick: () => void } }).action.onClick();
+
+    expect(router.patch).toHaveBeenLastCalledWith(
+      '/app/notifications/unread',
+      { ids: [3, 7] },
+      expect.anything(),
+    );
   });
 });
 

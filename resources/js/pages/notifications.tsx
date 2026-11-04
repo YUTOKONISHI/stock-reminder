@@ -2,7 +2,12 @@ import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { toast } from 'sonner';
 import { AddToHomeScreenSteps } from '@/features/install/components/AddToHomeScreenSteps';
-import { markNotificationAsRead, markNotificationAsUnread } from '@/features/notification/api';
+import {
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  markNotificationAsUnread,
+  markNotificationsAsUnread,
+} from '@/features/notification/api';
 import { usePushSubscription } from '@/features/notification/hooks/usePushSubscription';
 import type { PushSubscriptionStatus } from '@/features/notification/hooks/usePushSubscription';
 import type { NotificationLog } from '@/features/notification/types';
@@ -46,6 +51,17 @@ export default function Notifications({ notifications, vapidPublicKey }: Props) 
     });
   }
 
+  function markAllAsRead() {
+    markAllNotificationsAsRead((ids) => {
+      toast.success(`${ids.length}件を既読にしました`, {
+        action: {
+          label: '元に戻す',
+          onClick: () => markNotificationsAsUnread(ids),
+        },
+      });
+    });
+  }
+
   return (
     <AppShell title="Push通知" active="notifications">
       <h1 className="mb-6 text-center text-xl font-bold text-ink md:hidden">Push通知</h1>
@@ -84,7 +100,14 @@ export default function Notifications({ notifications, vapidPublicKey }: Props) 
       </section>
 
       <section>
-        <h2 className="mb-4 text-xl font-bold text-ink">未読の通知</h2>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h2 className="text-xl font-bold text-ink">未読の通知</h2>
+          {notifications.data.length > 0 && (
+            <Button type="button" variant="outline" size="sm" onClick={markAllAsRead}>
+              すべて既読
+            </Button>
+          )}
+        </div>
         {notifications.data.length === 0 ? (
           <p className="text-ink-muted">未読の通知はありません</p>
         ) : (
