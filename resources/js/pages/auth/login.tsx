@@ -18,10 +18,11 @@ import { Input } from '@/shared/components/ui/input';
 type LoginForm = {
   email: string;
   password: string;
+  remember: boolean;
 };
 
 export default function Login() {
-  const form = useForm<LoginForm>({ defaultValues: { email: '', password: '' } });
+  const form = useForm<LoginForm>({ defaultValues: { email: '', password: '', remember: true } });
   const { isSubmitting } = form.formState;
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -83,6 +84,26 @@ export default function Login() {
             )}
           />
           {authError && <p className="text-danger-600">{authError}</p>}
+          <FormField
+            control={form.control}
+            name="remember"
+            render={({ field }) => (
+              <FormItem className="flex items-center gap-2">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    ref={field.ref}
+                    name={field.name}
+                    checked={field.value}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    onBlur={field.onBlur}
+                    className="size-4 accent-primary-600"
+                  />
+                </FormControl>
+                <FormLabel className="font-normal">ログイン状態を保持する</FormLabel>
+              </FormItem>
+            )}
+          />
           <Button type="submit" disabled={isSubmitting} className="w-full">
             {isSubmitting ? 'ログイン中...' : 'ログイン'}
           </Button>

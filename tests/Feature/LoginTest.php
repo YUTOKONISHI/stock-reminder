@@ -1,11 +1,16 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Auth\SessionGuard;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Testing\AssertableInertia as Assert;
 
+use function Pest\Laravel\assertAuthenticatedAs;
 use function Pest\Laravel\assertGuest;
+use function Pest\Laravel\freezeTime;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
+use function Pest\Laravel\withCookie;
 
 function registeredUser(string $email = 'test@example.com'): User
 {
@@ -20,6 +25,20 @@ describe('login', function () {
 });
 
 describe('login.store', function () {
+    it('保持用のcookieだけでダッシュボードを開けること', function () {
+        $user = registeredUser();
+        $guard = Auth::guard('web');
+        assert($guard instanceof SessionGuard);
+
+        $value = $user->id.'|'.$user->remember_token.'|'.$guard->hashPasswordForCookie($user->password);
+
+        withCookie(recallerName(), $value)
+            ->get(route('dashboard'))
+            ->assertOk();
+
+        assertAuthenticatedAs($user, 'web');
+    });
+
     it('メールとパスワードが合えばダッシュボードへ進む', function () {
         registeredUser();
         post(route('login.store'), [
@@ -86,6 +105,30 @@ describe('login.store', function () {
         ])->assertTooManyRequests();
 
         assertGuest();
+    });
+
+    it('rememberをtrueにしてログインすると、保持用のcookieが発行され、期限が30日になる', function () {
+        registeredUser();
+        freezeTime();
+
+        $cookie = post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'remember' => true,
+        ])->getCookie(recallerName(), false);
+
+        expect($cookie)->not->toBeNull()
+            ->and($cookie->getExpiresTime())->toBe(now()->addDays(30)->getTimestamp());
+    });
+
+    it('remember を偽にしてログインすると、保持用の cookie は発行されない', function () {
+        registeredUser();
+
+        post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'remember' => false,
+        ])->assertCookieMissing(recallerName());
     });
 });
 

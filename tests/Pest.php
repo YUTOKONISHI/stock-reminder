@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 /*
@@ -48,4 +50,12 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+function recallerName(): string
+{
+    $guard = Auth::guard('web');
+    assert($guard instanceof SessionGuard);
+
+    return $guard->getRecallerName();
 }

@@ -13,7 +13,10 @@ type Callbacks = {
   onError?: (errors: Errors) => void;
 };
 
-export function login(credentials: { email: string; password: string }, callbacks: Callbacks) {
+export function login(
+  credentials: { email: string; password: string; remember: boolean },
+  callbacks: Callbacks,
+) {
   router.post(loginRoutes.store.url(), credentials, callbacks);
 }
 
