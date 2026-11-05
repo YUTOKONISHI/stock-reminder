@@ -5,7 +5,9 @@ use App\Models\Product;
 use App\Models\Stock;
 use App\Models\User;
 use App\Notifications\PurchaseReminder;
+use App\Notifications\PurchaseRemindersFailed;
 use Carbon\Carbon;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 
 use function Pest\Laravel\artisan;
@@ -26,6 +28,20 @@ function stockDue(User $user, string $date, string $productName): Stock
         ->for($user)
         ->for(Product::factory()->create(['name' => $productName]))
         ->create(['next_purchase_date' => $date]);
+}
+
+/** 2人を対象にし、1人目の履歴の作成だけを失敗させる。 */
+function failOneOfTwo(): void
+{
+    $failing = User::factory()->create();
+    stockDue($failing, '2026-09-23', 'ティッシュ');
+    stockDue(User::factory()->create(), '2026-09-23', '洗剤');
+
+    NotificationLog::creating(function (NotificationLog $log) use ($failing) {
+        if ($log->user_id === $failing->id) {
+            throw new RuntimeException('失敗');
+        }
+    });
 }
 
 describe('対象の絞り込み', function () {
@@ -57,6 +73,28 @@ describe('対象の絞り込み', function () {
 
         Notification::assertSentTo($user, PurchaseReminder::class);
         assertDatabaseCount('notification_logs', 1);
+    });
+
+    it('今日の通知履歴がある利用者には送らない', function () {
+        $user = User::factory()->create();
+        stockDue($user, '2026-09-23', 'ティッシュ');
+        NotificationLog::factory()->for($user)->create(['created_at' => '2026-09-23 00:00:00']);
+
+        artisan('app:send-purchase-reminders')->assertSuccessful();
+
+        Notification::assertNothingSent();
+        assertDatabaseCount('notification_logs', 1);
+    });
+
+    it('昨日の通知履歴しか無い利用者には送る', function () {
+        $user = User::factory()->create();
+        stockDue($user, '2026-09-23', 'ティッシュ');
+        NotificationLog::factory()->for($user)->create(['created_at' => '2026-09-22 23:59:59']);
+
+        artisan('app:send-purchase-reminders')->assertSuccessful();
+
+        Notification::assertSentTo($user, PurchaseReminder::class);
+        assertDatabaseCount('notification_logs', 2);
     });
 });
 
@@ -160,7 +198,7 @@ describe('通知の失敗', function () {
 
         Notification::shouldReceive('send')->andThrow(new RuntimeException('送信できない'));
 
-        artisan('app:send-purchase-reminders')->assertSuccessful();
+        artisan('app:send-purchase-reminders')->assertFailed();
 
         assertDatabaseHas('notification_logs', [
             'user_id' => $user->id,
@@ -180,10 +218,67 @@ describe('通知の失敗', function () {
             }
         });
 
-        artisan('app:send-purchase-reminders')->assertSuccessful();
+        artisan('app:send-purchase-reminders')->assertFailed();
 
         Notification::assertSentTo($next, PurchaseReminder::class);
         assertDatabaseHas('notification_logs', ['user_id' => $next->id]);
         assertDatabaseMissing('notification_logs', ['user_id' => $failing->id]);
+    });
+
+    it('失敗した利用者には次の回で送り直す', function () {
+        $user = User::factory()->create();
+        stockDue($user, '2026-09-23', 'ティッシュ');
+
+        $fail = true;
+        NotificationLog::creating(function () use (&$fail) {
+            if ($fail) {
+                throw new RuntimeException('失敗');
+            }
+        });
+
+        artisan('app:send-purchase-reminders')->assertFailed();
+
+        $fail = false;
+        travelTo(Carbon::parse('2026-09-23 10:00:00'));
+        artisan('app:send-purchase-reminders')->assertSuccessful();
+
+        assertDatabaseHas('notification_logs', ['user_id' => $user->id]);
+    });
+});
+
+describe('管理者への知らせ', function () {
+    it('失敗した回は、管理者のアドレスへ失敗した人数を知らせる', function () {
+        config(['services.admin.alert_email' => 'admin@example.com']);
+        failOneOfTwo();
+
+        artisan('app:send-purchase-reminders')->assertFailed();
+
+        Notification::assertSentOnDemand(
+            PurchaseRemindersFailed::class,
+            function (PurchaseRemindersFailed $notification, array $channels, AnonymousNotifiable $notifiable) {
+                $lines = $notification->toMail($notifiable)->introLines;
+
+                return $notifiable->routes['mail'] === 'admin@example.com'
+                    && in_array('対象2人のうち、1人の処理に失敗しました。', $lines, true);
+            },
+        );
+    });
+
+    it('全員に送れた回は、管理者に知らせない', function () {
+        config(['services.admin.alert_email' => 'admin@example.com']);
+        stockDue(User::factory()->create(), '2026-09-23', 'ティッシュ');
+
+        artisan('app:send-purchase-reminders')->assertSuccessful();
+
+        Notification::assertSentTimes(PurchaseRemindersFailed::class, 0);
+    });
+
+    it('管理者のアドレスが空なら、失敗しても知らせない', function () {
+        config(['services.admin.alert_email' => null]);
+        failOneOfTwo();
+
+        artisan('app:send-purchase-reminders')->assertFailed();
+
+        Notification::assertSentTimes(PurchaseRemindersFailed::class, 0);
     });
 });
