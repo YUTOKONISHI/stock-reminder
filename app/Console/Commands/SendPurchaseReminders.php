@@ -6,9 +6,11 @@ use App\Enums\NotificationStatus;
 use App\Models\NotificationLog;
 use App\Models\Stock;
 use App\Notifications\PurchaseReminder;
+use App\Notifications\PurchaseRemindersFailed;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Throwable;
 
 class SendPurchaseReminders extends Command
@@ -20,7 +22,13 @@ class SendPurchaseReminders extends Command
     public function handle(): int
     {
         $today = Carbon::today();
-        $stocks = Stock::with('product', 'user')->whereDate('next_purchase_date', '<=', $today)->orderBy('next_purchase_date')->get()->groupBy('user_id');
+        $stocks = Stock::with('product', 'user')
+            ->whereDate('next_purchase_date', '<=', $today)
+            ->whereNotIn('user_id', NotificationLog::select('user_id')->where('created_at', '>=', $today))
+            ->orderBy('next_purchase_date')
+            ->get()
+            ->groupBy('user_id');
+        $failed = 0;
 
         foreach ($stocks as $userId => $userStocks) {
             try {
@@ -54,6 +62,7 @@ class SendPurchaseReminders extends Command
                         'user_id' => $userId,
                         'exception' => $exception,
                     ]);
+                    $failed++;
                 }
 
                 NotificationLog::create([
@@ -67,9 +76,31 @@ class SendPurchaseReminders extends Command
                     'user_id' => $userId,
                     'exception' => $exception,
                 ]);
+                $failed++;
             }
         }
 
-        return self::SUCCESS;
+        if ($failed === 0) {
+            return self::SUCCESS;
+        }
+
+        $this->alertAdmin($failed, $stocks->count());
+
+        return self::FAILURE;
+    }
+
+    private function alertAdmin(int $failed, int $total): void
+    {
+        $email = config('services.admin.alert_email');
+
+        if (! is_string($email) || $email === '') {
+            return;
+        }
+
+        try {
+            Notification::route('mail', $email)->notify(new PurchaseRemindersFailed($failed, $total));
+        } catch (Throwable $exception) {
+            Log::error('通知の失敗を管理者に知らせられなかった', ['exception' => $exception]);
+        }
     }
 }

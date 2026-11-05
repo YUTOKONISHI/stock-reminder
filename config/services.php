@@ -14,6 +14,10 @@ return [
     |
     */
 
+    'admin' => [
+        'alert_email' => env('ADMIN_ALERT_EMAIL'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
