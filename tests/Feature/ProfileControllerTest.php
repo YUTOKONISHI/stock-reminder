@@ -4,6 +4,7 @@ use App\Models\NotificationLog;
 use App\Models\Stock;
 use App\Models\User;
 use App\Notifications\AccountDeleted;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -14,6 +15,18 @@ use function Pest\Laravel\assertGuest;
 use function Pest\Laravel\delete;
 use function Pest\Laravel\get;
 use function Pest\Laravel\put;
+use function Pest\Laravel\withCookie;
+
+function passwordChangeInput(): array
+{
+    return [
+        'name' => '太郎',
+        'household_size' => 1,
+        'current_password' => 'password',
+        'password' => 'test1234',
+        'password_confirmation' => 'test1234',
+    ];
+}
 
 beforeEach(function () {
     actingAs(User::factory()->create());
@@ -132,6 +145,43 @@ describe('update', function () {
         expect(Hash::check('test1234', User::findOrFail($user->id)->password))->toBeTrue();
     });
 
+    it('パスワードを変えると remember_token を作り直す', function () {
+        $user = User::findOrFail(Auth::guard('web')->id());
+        $before = $user->remember_token;
+
+        put(route('profile.update'), passwordChangeInput())
+            ->assertValid();
+
+        expect($user->fresh()->remember_token)->not->toBe($before);
+    });
+
+    it('保持用のcookieがあれば、新しいトークンで発行し直す', function () {
+        $user = User::findOrFail(Auth::guard('web')->id());
+
+        $cookie = withCookie(recallerName(), 'old')
+            ->put(route('profile.update'), passwordChangeInput())
+            ->assertValid()
+            ->getCookie(recallerName());
+
+        expect($cookie)->not->toBeNull()
+            ->and(explode('|', $cookie->getValue())[1])->toBe($user->fresh()->remember_token);
+    });
+
+    it('名前だけを変えたときは remember_token を変えない', function () {
+        $user = User::findOrFail(Auth::guard('web')->id());
+        $before = $user->remember_token;
+
+        put(route('profile.update'), ['name' => '太郎', 'household_size' => 1])->assertValid();
+
+        expect($user->fresh()->remember_token)->toBe($before);
+    });
+
+    it('保持用の cookie が無ければ、発行しない', function () {
+        put(route('profile.update'), passwordChangeInput())
+            ->assertValid()
+            ->assertCookieMissing(recallerName());
+    });
+
     it('現在のパスワードが違えば弾き、名前も変わらない', function () {
         $user = User::findOrFail(Auth::guard('web')->id());
         $input = [
@@ -157,6 +207,8 @@ describe('update', function () {
     it('パスワードを変更すると他の端末のセッションを消し、今のセッションはIDを変えて残す', function () {
         config(['session.driver' => 'database']);
         app('session')->forgetDrivers();
+        app()->forgetInstance('session.store');
+        Auth::forgetGuards();
 
         $user = User::factory()->create();
         $other = User::factory()->create();

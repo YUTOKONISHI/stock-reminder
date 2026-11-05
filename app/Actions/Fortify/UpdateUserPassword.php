@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\UpdatesUserPasswords;
 
@@ -30,6 +31,7 @@ class UpdateUserPassword implements UpdatesUserPasswords
 
         $user->forceFill([
             'password' => Hash::make($input['password']),
+            'remember_token' => Str::random(60),
         ])->save();
     }
 }

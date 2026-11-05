@@ -51,7 +51,8 @@ class ProfileController extends Controller
         });
 
         if ($changesPassword) {
-            $request->session()->regenerate(true);
+            $guard = Auth::guard('web');
+            $guard->login($user, $request->hasCookie($guard->getRecallerName()));
         }
 
         return back();
