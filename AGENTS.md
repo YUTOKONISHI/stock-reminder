@@ -171,7 +171,7 @@ API化は既存画面すべてに波及するため実施しない。
 - Laravel Sail で開発している。アプリケーションはDockerコンテナ上で動く
 - ホストにnodeもphpも無い。npmもartisanもcomposerもコンテナ経由で叩く
 - コマンドは `./vendor/bin/sail ...` に揃える（例: `./vendor/bin/sail composer ci:check`）
-- ただしAIエージェントが検証で叩くときは `docker compose exec -T laravel.test ...` を使う。`vendor/bin/sail` は `AI_AGENT` や `CLAUDECODE` をコンテナへ転送し、pintとphpstanがエージェント向けの出力に切り替わる。phpstanは出力を返さず終了コードだけを返すため、問題が無くても失敗に見える
+- ただしAIエージェントが検証で叩くときは `docker compose exec -T --user sail laravel.test ...` を使う。`--user sail` を外すと root で動き、テストなどの生成物が root 所有になって、sail 側の ESLint やテストが EACCES で落ちる（`.claude/settings.local.json` のフックで止めている）。`vendor/bin/sail` は `AI_AGENT` や `CLAUDECODE` をコンテナへ転送し、pintとphpstanがエージェント向けの出力に切り替わる。phpstanは出力を返さず終了コードだけを返すため、問題が無くても失敗に見える
 
 ## Laravelの書き方の指針
 - Laravel Boost が配る指針は `doc/boost-guidelines.md` にある。`boost:install` の既定はAGENTS.mdとCLAUDE.mdだが、本書の内容が埋もれるので `config/boost.php` で向き先を変えている
