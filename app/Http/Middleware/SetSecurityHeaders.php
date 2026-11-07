@@ -17,11 +17,12 @@ class SetSecurityHeaders
         $response->headers->set('X-Frame-Options', 'DENY');
         $csp = [
             'default-src' => ["'self'"],
-            'script-src' => ["'self'", "'nonce-{$nonce}'"],
+            'script-src' => ["'self'", "'nonce-{$nonce}'", 'https://challenges.cloudflare.com'],
             'style-src' => ["'self'", "'unsafe-inline'"],
             'img-src' => ["'self'", 'data:'],
             'font-src' => ["'self'"],
             'connect-src' => ["'self'"],
+            'frame-src' => ['https://challenges.cloudflare.com'],
             'object-src' => ["'none'"],
             'base-uri' => ["'self'"],
             'form-action' => ["'self'"],

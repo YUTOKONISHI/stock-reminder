@@ -181,6 +181,7 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 | クリックジャッキング | `X-Frame-Options: DENY` と CSP の `frame-ancestors 'none'` で、他のサイトの `iframe` に表示させない |
 | パスワードの保管 | モデルの `hashed` キャストでハッシュ化する。`password` と `remember_token` は JSON から隠す |
 | 総当たり | 一般ユーザーと管理者のログインはどちらも毎分5回、パスワード忘却、再設定、アカウントの削除は毎分6回に制限する |
+| ボットによる登録 | 新規登録に Cloudflare Turnstile を掛ける（`doc/design/auth.md`） |
 | 越権 | ストックと通知履歴の操作は、対象の `user_id` を照合して違えば 403 を返す |
 | 個人データのキャッシュ | Service Worker で HTML をキャッシュしない |
 | 本番での破壊的なDB操作 | `DB::prohibitDestructiveCommands` を本番で有効にする |
@@ -201,16 +202,18 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 | `Strict-Transport-Security` | `max-age=31536000`。本番だけ |
 
 CSP の値は次のとおり。
-フォントはビルド時に取り込んで `public/build` から配っているので、外部のドメインは許可していない。
+フォントはビルド時に取り込んで `public/build` から配っているので、フォントには外部のドメインを許可していない。
+外部のドメインは、新規登録の Turnstile が使う `https://challenges.cloudflare.com` だけを `script-src` と `frame-src` に許可している。
 
 | 項目 | 値 |
 |---|---|
 | `default-src` | `'self'` |
-| `script-src` | `'self' 'nonce-…'` |
+| `script-src` | `'self' 'nonce-…' https://challenges.cloudflare.com` |
 | `style-src` | `'self' 'unsafe-inline'` |
 | `img-src` | `'self' data:` |
 | `font-src` | `'self'` |
 | `connect-src` | `'self'` |
+| `frame-src` | `https://challenges.cloudflare.com` |
 | `object-src` | `'none'` |
 | `base-uri` | `'self'` |
 | `form-action` | `'self'` |

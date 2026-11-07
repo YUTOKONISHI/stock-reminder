@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Rules\Turnstile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -32,6 +33,11 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
+        ])->validate();
+
+        // 入力の誤りで差し戻す登録に siteverify を使わないよう、ほかの検証が通ってから確かめる。
+        Validator::make($input, [
+            'cf-turnstile-response' => ['required', 'string', 'max:2048', new Turnstile('register')],
         ])->validate();
 
         return User::create([

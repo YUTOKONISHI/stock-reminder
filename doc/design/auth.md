@@ -75,9 +75,27 @@ Fortify のビューは Inertia のページ部品に差し替える。
 | `name` | 必須、255文字以内 |
 | `email` | 必須、メール形式、255文字以内、`users` で一意 |
 | `password` | 必須、パスワード規則（後述）、確認入力と一致 |
+| `cf-turnstile-response` | 必須、2048文字以内、Turnstile の確認に合格（後述）。ほかの項目がすべて通ってから確かめる |
 
 世帯人数は登録時には受け取らない。
 `household_size` は `null` で作られ、設定画面から入れる。
+
+### ボット対策（Turnstile）
+
+登録画面は Cloudflare Turnstile の枠を出し、取れたトークンを `cf-turnstile-response` として送る。
+トークンが取れるまで、送信ボタンは押せない。
+サーバは `App\Rules\Turnstile` で、トークンを siteverify に送って確かめる。
+
+| 項目 | 内容 |
+|---|---|
+| キー | サイトキーは `TURNSTILE_SITE_KEY`（`Fortify::registerView` が `turnstileSiteKey` として画面に渡す）、シークレットキーは `TURNSTILE_SECRET_KEY` |
+| 合格の条件 | `success` が真、`action` が `register`、`hostname` が `APP_URL` のホスト名と一致 |
+| 不合格にする場合 | シークレットキーが無い、siteverify に届かない（5秒で打ち切る）、5xx を返した |
+| テスト用のキー | シークレットキーが `1x0000000000000000000000000000000AA` のときは `action` と `hostname` を見ない。この組では `hostname` が常に `example.com` で、`action` も返らないため |
+
+トークンは1回しか通らない。
+差し戻されたら、画面は理由にかかわらず枠を作り直し、新しいトークンを取り直す。
+決めた経緯は `doc/plans/20261107-turnstile-registration.md` にある。
 
 ### メールアドレスの確認
 

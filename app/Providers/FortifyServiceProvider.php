@@ -51,7 +51,9 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::loginView(fn () => Inertia::render('auth/login'));
 
-        Fortify::registerView(fn () => Inertia::render('auth/register'));
+        Fortify::registerView(fn () => Inertia::render('auth/register', [
+            'turnstileSiteKey' => config('services.turnstile.site_key'),
+        ]));
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
