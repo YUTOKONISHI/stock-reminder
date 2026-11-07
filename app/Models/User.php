@@ -17,6 +17,7 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use NotificationChannels\WebPush\PushSubscription;
 
@@ -32,7 +33,7 @@ use NotificationChannels\WebPush\PushSubscription;
  * @property CarbonImmutable $updated_at
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
- * @property string|null $two_factor_confirmed_at
+ * @property CarbonImmutable|null $two_factor_confirmed_at
  * @property-read Collection<int, NotificationLog> $notificationLogs
  * @property-read int|null $notification_logs_count
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
@@ -62,11 +63,11 @@ use NotificationChannels\WebPush\PushSubscription;
  * @mixin \Eloquent
  */
 #[Fillable('name', 'email', 'password', 'household_size')]
-#[Hidden('password', 'remember_token')]
+#[Hidden('password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes')]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasPushSubscriptions, Notifiable;
+    use HasFactory, HasPushSubscriptions, Notifiable, TwoFactorAuthenticatable;
 
     use Prunable {
         prune as pruneOutsideTransaction;
@@ -84,6 +85,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_confirmed_at' => 'datetime',
         ];
     }
 

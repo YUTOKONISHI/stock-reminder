@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Actions\Fortify\AttemptToAuthenticate;
 use App\Actions\Fortify\CreateNewUser;
+use App\Actions\Fortify\DisableTwoFactorAuthentication;
+use App\Actions\Fortify\RedirectIfTwoFactorAuthenticatable;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -13,19 +15,19 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Actions\CanonicalizeUsername;
+use Laravel\Fortify\Actions\DisableTwoFactorAuthentication as BaseDisableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\EnsureLoginIsNotThrottled;
 use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
-use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        $this->app->singleton(
+            BaseDisableTwoFactorAuthentication::class,
+            DisableTwoFactorAuthentication::class,
+        );
     }
 
     /**
@@ -41,6 +43,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::authenticateThrough(fn ($request) => array_filter([
             config('fortify.limiters.login') ? null : EnsureLoginIsNotThrottled::class,
             config('fortify.lowercase_usernames') ? CanonicalizeUsername::class : null,
+            RedirectIfTwoFactorAuthenticatable::class,
             AttemptToAuthenticate::class,
             PrepareAuthenticatedSession::class,
         ]));
@@ -54,6 +57,10 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::registerView(fn () => Inertia::render('auth/register', [
             'turnstileSiteKey' => config('services.turnstile.site_key'),
         ]));
+
+        Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
+
+        Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
