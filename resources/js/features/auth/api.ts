@@ -21,7 +21,13 @@ export function login(
 }
 
 export function register(
-  values: { name: string; email: string; password: string; password_confirmation: string },
+  values: {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    'cf-turnstile-response': string;
+  },
   callbacks: Callbacks,
 ) {
   router.post(registerRoutes.store.url(), values, callbacks);

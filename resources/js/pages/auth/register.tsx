@@ -1,8 +1,10 @@
 import { Link } from '@inertiajs/react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { register } from '@/features/auth/api';
 import { login } from '@/routes';
 import { AuthCard } from '@/shared/components/AuthCard';
+import { Turnstile } from '@/shared/components/Turnstile';
 import { Button } from '@/shared/components/ui/button';
 import {
   Form,
@@ -21,22 +23,40 @@ type RegisterForm = {
   password_confirmation: string;
 };
 
-export default function Register() {
+type Props = {
+  turnstileSiteKey: string;
+};
+
+export default function Register({ turnstileSiteKey }: Props) {
+  const [turnstileAttempt, setTurnstileAttempt] = useState(0);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
   const form = useForm<RegisterForm>({
     defaultValues: { name: '', email: '', password: '', password_confirmation: '' },
   });
   const { isSubmitting } = form.formState;
 
   function onSubmit(data: RegisterForm) {
-    register(data, {
-      onError: (err) => {
-        (['name', 'email', 'password'] as const).forEach((field) => {
-          if (err[field]) {
-            form.setError(field, { message: err[field] });
-          }
-        });
+    if (!turnstileToken) {
+      return;
+    }
+
+    setTurnstileError(null);
+    register(
+      { ...data, 'cf-turnstile-response': turnstileToken },
+      {
+        onError: (err) => {
+          setTurnstileToken(null);
+          setTurnstileAttempt((n) => n + 1);
+          setTurnstileError(err['cf-turnstile-response'] ?? null);
+          (['name', 'email', 'password'] as const).forEach((field) => {
+            if (err[field]) {
+              form.setError(field, { message: err[field] });
+            }
+          });
+        },
       },
-    });
+    );
   }
 
   return (
@@ -106,7 +126,16 @@ export default function Register() {
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={isSubmitting} className="w-full">
+          <div>
+            <Turnstile
+              key={turnstileAttempt}
+              siteKey={turnstileSiteKey}
+              action="register"
+              onToken={setTurnstileToken}
+            />
+            {turnstileError && <p className="text-sm text-destructive">{turnstileError}</p>}
+          </div>
+          <Button type="submit" disabled={isSubmitting || !turnstileToken} className="w-full">
             {isSubmitting ? '登録中...' : '新規登録'}
           </Button>
           <div className="mt-2 flex justify-center">
