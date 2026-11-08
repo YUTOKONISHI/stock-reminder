@@ -24,6 +24,8 @@ class LogRequest
         'auth',
         'p256dh',
         'endpoint',
+        'code',
+        'recovery_code',
     ];
 
     private const FILTERED_VALUE = '[FILTERED]';

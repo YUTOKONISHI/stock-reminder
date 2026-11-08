@@ -1,9 +1,10 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { faBox, faChevronRight, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faBox, faChevronRight, faShieldHalved, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Link } from '@inertiajs/react';
 import profile from '@/routes/profile';
 import stocks from '@/routes/stocks';
+import twoFactor from '@/routes/two-factor';
 import { AppShell } from '@/shared/layouts/AppShell';
 
 type MenuItem = {
@@ -25,6 +26,12 @@ const MENU_ITEMS: MenuItem[] = [
     icon: faBox,
     label: 'ストック管理',
     description: '消費日数とストック数の登録',
+  },
+  {
+    href: twoFactor.settings.url(),
+    icon: faShieldHalved,
+    label: '2段階認証',
+    description: '認証アプリのコードでログインを守る',
   },
 ];
 

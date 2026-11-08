@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Notifications\AccountDeleted;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,6 +52,7 @@ class ProfileController extends Controller
         });
 
         if ($changesPassword) {
+            /** @var SessionGuard $guard */
             $guard = Auth::guard('web');
             $guard->login($user, $request->hasCookie($guard->getRecallerName()));
         }

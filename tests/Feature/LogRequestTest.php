@@ -125,6 +125,20 @@ describe('マスク', function () {
         ]);
     });
 
+    it('code と recovery_code が伏せられる', function () {
+        $handler = captureRequestLog();
+
+        post(route('two-factor.login'), [
+            'code' => '123456',
+            'recovery_code' => 'aaaaaaaaaa-aaaaaaaaaa',
+        ]);
+
+        expect(firstLogContext($handler)['input'])->toBe([
+            'code' => '[FILTERED]',
+            'recovery_code' => '[FILTERED]',
+        ]);
+    });
+
     it('伏せる対象でない値はそのまま残す', function () {
         $handler = captureRequestLog();
 

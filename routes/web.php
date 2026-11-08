@@ -9,6 +9,8 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\TwoFactorController;
+use App\Http\Controllers\TwoFactorRecoveryRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/app/welcome');
@@ -22,6 +24,7 @@ Route::prefix('app')->group(function () {
     Route::post('/forgot-password', [PasswordResetController::class, 'sendTemporaryPassword'])->middleware('throttle:6,1')->name('forgot-password.store');
     Route::inertia('/reset-password', 'auth/reset-password')->name('reset-password');
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->middleware('throttle:6,1')->name('reset-password.store');
+    Route::post('/two-factor-challenge/recovery-request', [TwoFactorRecoveryRequestController::class, 'recoveryRequest'])->name('two-factor-challenge.recovery');
 
     Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -44,6 +47,7 @@ Route::prefix('app')->group(function () {
         Route::get('/settings/profile', [ProfileController::class, 'index'])->name('profile.edit');
         Route::put('/settings/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/settings/profile', [ProfileController::class, 'destroy'])->middleware('throttle:6,1')->name('profile.destroy');
+        Route::get('/settings/two-factor', [TwoFactorController::class, 'show'])->middleware('password.confirm')->name('two-factor.settings');
 
         Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push-subscriptions.store');
         Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');

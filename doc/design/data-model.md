@@ -30,9 +30,9 @@ admin ──┬─< categories ──< products ──< stocks >── users ─
 | `email` | varchar(255) | NOT NULL, UNIQUE | ログインID |
 | `email_verified_at` | timestamptz | NULL可 | メールアドレスの確認が済んだ日時。`NULL` なら未確認 |
 | `password` | varchar(255) | NOT NULL | ハッシュ済み |
-| `two_factor_secret` | text | NULL可 | Fortify の2要素認証用。画面からは使っていない |
-| `two_factor_recovery_codes` | text | NULL可 | 同上 |
-| `two_factor_confirmed_at` | timestamptz | NULL可 | 同上 |
+| `two_factor_secret` | text | NULL可 | 2段階認証の秘密の文字列。APP_KEY で暗号化して入る。`NULL` なら2段階認証を使っていない |
+| `two_factor_recovery_codes` | text | NULL可 | リカバリーコード8つの JSON 配列を、APP_KEY で暗号化したもの |
+| `two_factor_confirmed_at` | timestamptz | NULL可 | 認証アプリのコードを確かめて有効になった日時。`NULL` で `two_factor_secret` があれば設定中 |
 | `household_size` | integer | NULL可 | 世帯人数。消費日数の初期値の算出に使う |
 | `remember_token` | varchar(100) | NULL可 | |
 | `created_at` / `updated_at` | timestamptz | NOT NULL | 既定は現在時刻 |

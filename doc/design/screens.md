@@ -15,6 +15,8 @@
 | パスワード忘却 | `/app/forgot-password` | `auth/forgot-password` | 不要 |
 | パスワード再設定 | `/app/reset-password` | `auth/reset-password` | 不要 |
 | メール確認待ち | `/app/email/verify` | `auth/verify-email` | 要（未確認でも開ける） |
+| 2段階認証のコード入力 | `/app/two-factor-challenge` | `auth/two-factor-challenge` | 不要（パスワードを通った後に開く） |
+| パスワード確認 | `/app/user/confirm-password` | `auth/confirm-password` | 要（未確認でも開ける） |
 | ダッシュボード | `/app/dashboard` | `dashboard` | 要 |
 | ストック一覧 | `/app/stocks` | `stocks/index` | 要 |
 | ストック新規登録 | `/app/stocks/create` | `stocks/form` | 要 |
@@ -22,6 +24,7 @@
 | Push通知 | `/app/notifications` | `notifications` | 要 |
 | 設定メニュー | `/app/settings` | `settings/index` | 要 |
 | 個人情報の変更 | `/app/settings/profile` | `settings/profile` | 要 |
+| 2段階認証の設定 | `/app/settings/two-factor` | `settings/two-factor` | 要（パスワード確認も求める） |
 
 認証が「要」の画面は、メールアドレスの確認が済んでいることも求める。
 
@@ -40,11 +43,6 @@
 管理者の操作（商品とカテゴリの追加、編集、削除、パスワード変更）はすべてマスタ管理画面の上で完結する。
 追加と編集はモーダルで、専用の URL を持たない。
 
-### 画面を持たないルート
-
-Fortify の2要素認証は機能として有効になっており、`/app/two-factor-challenge` と `/app/user/two-factor-*` のルートが登録されている。
-対応するページ部品は無く、画面からは使われていない。
-
 ## 画面遷移
 
 ### 一般ユーザー
@@ -55,6 +53,8 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
             │
             ├─▶ /app/login ──(成功)──▶ /app/dashboard
             │        │
+            │        ├─(2段階認証が有効)──▶ /app/two-factor-challenge ──(コードが合う)──▶ /app/dashboard
+            │        │
             │        └─▶ /app/forgot-password ──(仮パスワード送信)──▶ /app/reset-password
             │                                                              │
             │                                                    (再設定)──▶ /app/login
@@ -63,8 +63,11 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 /app/dashboard ─┬─▶ /app/stocks ─┬─▶ /app/stocks/create
                 │                └─▶ /app/stocks/{id}/edit
                 ├─▶ /app/notifications
-                └─▶ /app/settings ──▶ /app/settings/profile ──(アカウント削除)──▶ /app/login
+                └─▶ /app/settings ─┬─▶ /app/settings/profile ──(アカウント削除)──▶ /app/login
+                                   └─▶ /app/settings/two-factor
 ```
+
+`/app/settings/two-factor` は、パスワードの確認が3時間以内に済んでいなければ、先に `/app/user/confirm-password` を経る。
 
 ダッシュボード、通知、設定の行き来は共通レイアウト `AppShell` のナビゲーションが担う。
 画面幅が広いときはヘッダーに、狭いときは下部のタブに出る。
@@ -96,6 +99,7 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 | POST | `/app/forgot-password` | `forgot-password.store` | 仮パスワードの発行とメール送信 |
 | GET | `/app/reset-password` | `reset-password` | パスワード再設定画面 |
 | POST | `/app/reset-password` | `reset-password.store` | パスワードの再設定 |
+| POST | `/app/two-factor-challenge/recovery-request` | `two-factor-challenge.recovery` | 2段階認証の解除を管理者へ依頼する |
 | GET | `/app/dashboard` | `dashboard` | ダッシュボード |
 | GET | `/app/stocks` | `stocks.index` | ストック一覧 |
 | GET | `/app/stocks/create` | `stocks.create` | ストック新規登録画面 |
@@ -113,12 +117,16 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 | GET | `/app/settings/profile` | `profile.edit` | 個人情報の変更画面 |
 | PUT | `/app/settings/profile` | `profile.update` | 個人情報の更新 |
 | DELETE | `/app/settings/profile` | `profile.destroy` | アカウントの削除 |
+| GET | `/app/settings/two-factor` | `two-factor.settings` | 2段階認証の設定画面 |
 | POST | `/app/push-subscriptions` | `push-subscriptions.store` | Push購読の登録 |
 | DELETE | `/app/push-subscriptions` | `push-subscriptions.destroy` | Push購読の削除 |
 
 `/app/dashboard` 以降は `auth` と `verified` ミドルウェアの下にある。
 
 パスワード忘却と再設定の POST には `throttle:6,1`（同一IPから毎分6回まで）を掛けている。
+
+2段階認証の設定画面には `password.confirm` も掛けている。
+解除の依頼は回数をコントローラで数えるため、ミドルウェアの制限を掛けていない（`doc/design/auth.md`）。
 
 ### Fortify が登録するもの
 
@@ -134,6 +142,18 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 | GET | `/app/email/verify` | `verification.notice` | メール確認待ち画面 |
 | GET | `/app/email/verify/{id}/{hash}` | `verification.verify` | メールアドレスの確認（署名付き） |
 | POST | `/app/email/verification-notification` | `verification.send` | 確認メールの再送 |
+| GET | `/app/two-factor-challenge` | `two-factor.login` | 2段階認証のコード入力画面 |
+| POST | `/app/two-factor-challenge` | `two-factor.login.store` | コードかリカバリーコードでログインする |
+| GET | `/app/user/confirm-password` | `password.confirm` | パスワード確認画面 |
+| POST | `/app/user/confirm-password` | `password.confirm.store` | パスワードの確認 |
+| POST | `/app/user/two-factor-authentication` | `two-factor.enable` | 2段階認証を設定中にする |
+| POST | `/app/user/confirmed-two-factor-authentication` | `two-factor.confirm` | コードを確かめて有効にする |
+| DELETE | `/app/user/two-factor-authentication` | `two-factor.disable` | 2段階認証を外す |
+| POST | `/app/user/two-factor-recovery-codes` | `two-factor.regenerate-recovery-codes` | リカバリーコードの作り直し |
+
+`/app/user/two-factor-*` と `/app/user/confirm-password` は、`password.confirm` を含めて Fortify がミドルウェアを掛ける。
+画像、秘密の文字列、リカバリーコードを JSON で返すルート（`two-factor.qr-code`、`two-factor.secret-key`、`two-factor.recovery-codes`）と、`password.confirmation` も登録されるが、画面からは使わない。
+設定画面は、これらを Inertia の値として受け取る。
 
 ### 管理者
 
@@ -171,6 +191,6 @@ Fortify の2要素認証は機能として有効になっており、`/app/two-f
 `AppShell` はヘッダー、下部ナビゲーション、トースト表示枠を持ち、`title` と現在位置を表す `active` を受け取る。
 レスポンシブ対応はここに集約している。
 
-認証まわりの画面（ログイン、新規登録、パスワード忘却、パスワード再設定、メール確認待ち）は `shared/components/AuthCard.tsx` を使う。
+認証まわりの画面（ログイン、新規登録、パスワード忘却、パスワード再設定、メール確認待ち、2段階認証のコード入力、パスワード確認）は `shared/components/AuthCard.tsx` を使う。
 
 管理画面は `features/admin/components/AdminHeader.tsx` を持つが、レスポンシブ対応の対象外である。
