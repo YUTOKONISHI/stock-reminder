@@ -148,3 +148,18 @@ Cloudflare のドキュメントで確かめた場所は次のとおりである
 Rocket Loader が動いていれば `<script>` の `type` が書き換えられ、Web Analytics が動いていれば `cloudflareinsights` の読み込みが現れる。
 
 Full (strict) と Email Address Obfuscation のオフは、設定を済ませた。
+
+## 追記: 手順5から7の結果（2026-11-08）
+
+Rocket Loader は、日本語表示のダッシュボードで場所が分かりにくかったが、開発者が見つけてオフにした。
+Web Analytics は、サイトの一覧に何も登録されていなかった。
+ドキュメントには、プロキシを通したサイトは既定で自動設定になるとあるので、切り替えた後に HTML で確かめた。
+
+`stock` の A と AAAA をオレンジ色にした後、次を確かめた。
+
+- DNS は Cloudflare の IP アドレスを返し、応答に `server: cloudflare` と `cf-ray` が付く
+- 証明書の検証エラーは出ない
+- リクエストログの `ip` は送り手の本当の IP アドレスで、Cloudflare の IP アドレスではない
+- 偽の `CF-Connecting-IP` を付けたリクエストは、Cloudflare が 403 で断り、アプリに届かない
+- HTML の `<script>` の `type` は書き換えられておらず、`cloudflareinsights` の読み込みも無い
+- ブラウザでログインでき、新規登録画面に Turnstile の枠が出る（開発者が確かめた）

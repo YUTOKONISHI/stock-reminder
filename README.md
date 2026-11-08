@@ -25,19 +25,23 @@
 | DB | PostgreSQL 18 |
 | 認証 | Laravel Fortify |
 | 開発環境 | Laravel Sail（Docker） |
-| インフラ | Fly.io、Cloudflare（DNS、メールの転送）、Resend（メール送信）、Tigris（バックアップ） |
+| インフラ | Fly.io、Cloudflare（DNS、プロキシ、メールの転送）、Resend（メール送信）、Tigris（バックアップ） |
 | CI/CD | GitHub Actions |
 
 ## インフラ構成
 
 本番は Fly.io の東京リージョンで動かしている（https://stock.deployshelf.dev/ ）。
 構成と決めた理由は [計画書](doc/plans/20261018-deploy-flyio.md) にある。
+Cloudflare のプロキシを挟んだ経緯は [計画書](doc/plans/20261108-cloudflare-proxy.md) にある。
 
 ```mermaid
 flowchart LR
     user["ブラウザ / PWA"]
 
-    dns["Cloudflare<br>DNS"]
+    subgraph cf["Cloudflare"]
+        dns["DNS"]
+        cdn["プロキシ<br>HTTPS"]
+    end
 
     subgraph fly["Fly.io（東京）"]
         proxy["Fly Proxy<br>HTTPS"]
@@ -52,7 +56,7 @@ flowchart LR
     gha["GitHub Actions"]
 
     user -->|名前解決| dns
-    user -->|HTTPS| proxy --> app --> db
+    user -->|HTTPS| cdn -->|HTTPS| proxy --> app --> db
     scheduler --> db
     scheduler -->|pg_dump| tigris
     scheduler -->|Web Push| push --> user
