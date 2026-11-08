@@ -115,14 +115,14 @@ describe('two-factor.login', function () {
             'email' => 'test@example.com',
             'password' => 'password',
         ])
-          ->assertValid()
-          ->assertRedirect(route('dashboard'));
+            ->assertValid();
 
         $old_code = 'aaaaaaaaaa-aaaaaaaaaa';
 
         post(route('two-factor.login'), [
             'recovery_code' => $old_code,
-        ]);
+        ])
+            ->assertRedirect(route('dashboard'));
 
         post(route('logout'), []);
 
