@@ -1,5 +1,5 @@
 CREATE TABLE "users"(
-    "id" BIGINT NOT NULL,
+    "id" bigserial NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "email_verified_at" TIMESTAMP(0) WITH
@@ -74,7 +74,7 @@ COMMENT
 ON COLUMN
     "password_reset_tokens"."created_at" IS '作成日時';
 CREATE TABLE "admin"(
-    "id" BIGINT NOT NULL,
+    "id" bigserial NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "password" VARCHAR(255) NOT NULL,
     "created_at" TIMESTAMP(0) WITH
@@ -85,6 +85,8 @@ CREATE TABLE "admin"(
 );
 ALTER TABLE
     "admin" ADD PRIMARY KEY("id");
+ALTER TABLE
+    "admin" ADD CONSTRAINT "admin_name_unique" UNIQUE("name");
 COMMENT
 ON COLUMN
     "admin"."name" IS '管理者名';
@@ -98,7 +100,7 @@ COMMENT
 ON COLUMN
     "admin"."updated_at" IS '更新日付';
 CREATE TABLE "categories"(
-    "id" BIGINT NOT NULL,
+    "id" bigserial NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "created_by" BIGINT NOT NULL,
     "updated_by" BIGINT NOT NULL,
@@ -128,7 +130,7 @@ COMMENT
 ON COLUMN
     "categories"."updated_at" IS '更新日付';
 CREATE TABLE "products"(
-    "id" BIGINT NOT NULL,
+    "id" bigserial NOT NULL,
     "category_id" BIGINT NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "default_consumption_interval_days" INTEGER NOT NULL,
@@ -166,7 +168,7 @@ COMMENT
 ON COLUMN
     "products"."updated_at" IS '更新日付';
 CREATE TABLE "stocks"(
-    "id" BIGINT NOT NULL,
+    "id" bigserial NOT NULL,
     "user_id" BIGINT NOT NULL,
     "product_id" BIGINT NOT NULL,
     "quantity" INTEGER NOT NULL DEFAULT 1,
@@ -208,7 +210,7 @@ COMMENT
 ON COLUMN
     "stocks"."updated_at" IS '更新日付';
 CREATE TABLE "notification_logs"(
-    "id" BIGINT NOT NULL,
+    "id" bigserial NOT NULL,
     "user_id" BIGINT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -242,7 +244,7 @@ COMMENT
 ON COLUMN
     "notification_logs"."updated_at" IS '更新日時';
 CREATE TABLE "push_subscriptions"(
-    "id" BIGINT NOT NULL,
+    "id" bigserial NOT NULL,
     "subscribable_type" VARCHAR(255) NOT NULL,
     "subscribable_id" BIGINT NOT NULL,
     "endpoint" VARCHAR(500) NOT NULL,
@@ -255,6 +257,11 @@ CREATE TABLE "push_subscriptions"(
     WITH
         TIME zone NULL
 );
+CREATE INDEX "push_subscriptions_subscribable_type_subscribable_id_index" ON
+    "push_subscriptions"(
+        "subscribable_type",
+        "subscribable_id"
+    );
 ALTER TABLE
     "push_subscriptions" ADD PRIMARY KEY("id");
 ALTER TABLE
