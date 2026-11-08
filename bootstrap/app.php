@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LogRequest;
+use App\Http\Middleware\ResolveClientIp;
 use App\Http\Middleware\SetSecurityHeaders;
 use App\Support\LogContext;
 use Illuminate\Foundation\Application;
@@ -24,8 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        // 接続元は ResolveClientIp が決める。X-Forwarded-For と X-Forwarded-Host は送り手が書けるので読まない。
+        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_PROTO);
 
+        $middleware->prepend(ResolveClientIp::class);
         $middleware->append([LogRequest::class, SetSecurityHeaders::class]);
 
         $middleware->web(append: [
