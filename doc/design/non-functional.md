@@ -188,6 +188,19 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 
 `/api/*` へのリクエストは例外を JSON で返す設定にしてあるが、該当するルートは無い。
 
+### 送信元IP
+
+`$request->ip()` が返す送信元IPは、`ResolveClientIp` ミドルウェアが決める。
+`bootstrap/app.php` の `$middleware->prepend()` で全リクエストの先頭に置き、接続元（`REMOTE_ADDR`）を次の値に書き換える。
+
+1. `Fly-Client-IP` が無いか、IPアドレスの形でなければ、書き換えない（ローカルとテスト）
+2. `Fly-Client-IP` が Cloudflare の範囲（`config('services.cloudflare.proxy_ips')`）に入り、`CF-Connecting-IP` がIPアドレスの形なら、`CF-Connecting-IP`
+3. それ以外は `Fly-Client-IP`
+
+`trustProxies` が読むヘッダは `X-Forwarded-Proto` だけにしている。
+`X-Forwarded-For` と `X-Forwarded-Host` は送り手が書けるので、送信元IPにも URL の生成にも使わない。
+Cloudflare の範囲は公開されている一覧の写しで、一覧が変わったら `config/services.php` を直す。
+
 ### セキュリティヘッダ
 
 `SetSecurityHeaders` ミドルウェアが、レスポンスに次のヘッダを付ける。
