@@ -26,12 +26,13 @@ Laravel Fortify が担う。
 | `prefix` | `app` | Fortify のルートを `/app/` の下に出す |
 | `home` | `/app/dashboard` | ログイン後の行き先 |
 | `redirects.logout` | `/app/login` | ログアウト後の行き先 |
-| `features` | 登録、メール確認、2要素認証 | パスワードリセットは含めない（後述） |
+| `features` | 登録、メール確認、2段階認証 | パスワードリセットは含めない（後述）。2段階認証は `confirm` と `confirmPassword` を有効にしている |
 
 ### 認証の流れ
 
 `FortifyServiceProvider` が認証パイプラインを組み替えている。
-順に `EnsureLoginIsNotThrottled`、`CanonicalizeUsername`、`AttemptToAuthenticate`、`PrepareAuthenticatedSession` を通す。
+順に `EnsureLoginIsNotThrottled`、`CanonicalizeUsername`、`RedirectIfTwoFactorAuthenticatable`、`AttemptToAuthenticate`、`PrepareAuthenticatedSession` を通す。
+`RedirectIfTwoFactorAuthenticatable` は、2段階認証が有効な利用者をコード入力画面へ送る（後述）。
 
 `AttemptToAuthenticate` は Fortify のものを継承し、失敗時の例外だけを差し替える。
 エラーは `email` ではなく `auth_error` キーに載せ、「名前またはパスワードが正しくありません」を返す。
@@ -65,6 +66,8 @@ Fortify のビューは Inertia のページ部品に差し替える。
 | ログイン | `auth/login` |
 | 新規登録 | `auth/register` |
 | メール確認待ち | `auth/verify-email` |
+| 2段階認証のコード入力 | `auth/two-factor-challenge` |
+| パスワード確認 | `auth/confirm-password` |
 
 ### アカウント作成
 
@@ -124,10 +127,81 @@ Fortify のメール確認を使う。
 
 2026-11-03 のマイグレーションで、それ以前に登録した利用者は確認済みにした。
 
-### 2要素認証
+### 2段階認証
 
-機能としては有効で、ルートと `users` の列は用意されている。
-画面は作っておらず、利用者が有効化する導線は無い。
+利用者は設定画面から、認証アプリのコード（TOTP）を使う2段階認証を任意で有効にできる。
+`User` に Fortify の `TwoFactorAuthenticatable` を付けている。
+`two_factor_secret` と `two_factor_recovery_codes` は `#[Hidden]` に入れ、`auth.user` として画面に渡さない。
+決めた経緯は `doc/plans/20261106-two-factor-totp.md` にある。
+
+#### ログインの流れ
+
+`two_factor_confirmed_at` が入っている利用者は、パスワードが合ってもその場ではログインしない。
+`RedirectIfTwoFactorAuthenticatable` が利用者IDと保持の選択をセッション（`login.id`、`login.remember`）に置き、コード入力画面（`/app/two-factor-challenge`）へ送る。
+そこで認証アプリのコードかリカバリーコードを送り、合えばログインする。
+ログイン画面で保持を選んでいれば、保持用の cookie はこの時点で発行される。
+
+`RedirectIfTwoFactorAuthenticatable` は Fortify のものを継承し、パスワードが合わないときの例外だけを差し替える。
+`AttemptToAuthenticate` と同じく、`auth_error` に「名前またはパスワードが正しくありません」を返す。
+
+コードの送信は `two-factor` リミッタで、`login.id` ごとに毎分5回までとする。
+コードが違うときの文言は、`lang/ja.json` で日本語にしている。
+
+秘密の文字列はあっても確認が済んでいない利用者（設定中）は、パスワードだけでログインできる。
+
+#### 設定画面
+
+設定画面（`/app/settings/two-factor`、`TwoFactorController::show`）には `password.confirm` ミドルウェアを掛けている。
+開く前にパスワードを入れ直させ（`auth/confirm-password`）、一度入れれば3時間（`config/auth.php` の `password_timeout`）は聞かない。
+Fortify の有効化、確認、無効化、リカバリーコードの作り直しのルートも、`confirmPassword` の設定で同じ確認を求める。
+
+画面は利用者の状態で3通りに描く。
+
+| 状態 | 条件 | 画面に渡す値 |
+|---|---|---|
+| 無効（`disabled`） | `two_factor_secret` が空 | 状態だけ |
+| 設定中（`pending`） | `two_factor_secret` はあるが `two_factor_confirmed_at` が空 | 認証アプリで読み取る画像（`twoFactorQrCodeSvg()` が返す SVG）と、手入力用の秘密の文字列 |
+| 有効（`enabled`） | `two_factor_confirmed_at` がある | リカバリーコード |
+
+有効にするまでは2段階に分かれる。
+「有効にする」を押すと、Fortify が秘密の文字列と8つのリカバリーコードを作り、設定中になる。
+認証アプリに登録して表示されたコードを送り、合えば `two_factor_confirmed_at` に時刻が入って有効になる。
+コードが合わないとき、Fortify はエラーを `confirmTwoFactorAuthentication` のエラーバッグに入れるので、画面はこのバッグを指定して送る。
+
+リカバリーコードは1つにつき1回使える。
+使ったコードは、Fortify が新しいコードに置き換える。
+有効の状態では、リカバリーコードの作り直しと、2段階認証の無効化ができる。
+設定中の「やめる」も、無効化と同じルートで秘密の文字列を消す。
+
+#### 無効にしたときのメール
+
+`App\Actions\Fortify\DisableTwoFactorAuthentication` は Fortify の同名のクラスを継承し、`FortifyServiceProvider::register` でコンテナの割り当てを差し替えている。
+外す前に `two_factor_confirmed_at` が入っていたときだけ、本人に `TwoFactorDisabled` を送る。
+設定中に「やめる」で外したときは送らない。
+設定画面の無効化と、後述の管理者のコマンドは、どちらもこのクラスを通る。
+
+#### 認証アプリもリカバリーコードも使えないとき
+
+コード入力画面の「認証アプリもリカバリーコードも使えない場合」から、管理者へ解除を依頼できる。
+ログイン前の画面なので、管理者の連絡先は出さない。
+依頼は `POST /app/two-factor-challenge/recovery-request`（`TwoFactorRecoveryRequestController`）が受け、次の順に確かめる。
+
+1. セッションの `login.id` で利用者を引けなければ、`/app/login` へ戻す
+2. 入力したメールアドレスがその利用者のものでなければ、`email` に「ログインに使ったメールアドレスを入力してください」を返す
+3. 1時間以内に送れた依頼があれば、`email` に「依頼は受け付け済みです。1時間ほどおいてからお試しください」を返す
+
+通れば、`ADMIN_ALERT_EMAIL`（`config('services.admin.alert_email')`）へ `TwoFactorRecoveryRequested` を送る。
+本文には利用者ID、メールアドレス、依頼の日時、IPアドレスを書く。
+続けて本人へ `TwoFactorRecoveryRequestReceived` を送り、心当たりが無ければパスワードを変えるよう伝える。
+2通とも送れたときだけ、`RateLimiter` で `two-factor-recovery:{利用者ID}` を3600秒数える。
+打ち間違いや送信の失敗まで数えると、困っている人が1時間ほど依頼を出し直せなくなるためである。
+送れなかったときはエラーログに残し、`email` に「依頼を送れませんでした。時間をおいてもう一度お試しください」を返す。
+
+管理者は、本人から返事を得てから `php artisan app:disable-two-factor {email}` で2段階認証を外す。
+コマンドは上の `DisableTwoFactorAuthentication` を通すので、本人に `TwoFactorDisabled` が届く。
+利用者が居なければ失敗の終了コードで終わり、秘密の文字列が無ければ何もせずに終わる。
+外したことは `two-factor disabled by admin` としてログに残す。
+外した後は、パスワードだけでログインできる。
 
 ## 管理者の認証
 
