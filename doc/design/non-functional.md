@@ -215,6 +215,32 @@ Cloudflare の Transform Rule が、`stock.deployshelf.dev` へのリクエス�
 秘密の値を変えるときは、Transform Rule を先に新しい値へ変えると、`fly secrets set` が反映されるまでの間すべてのリクエストが断られる。
 変える間は一時的に `fly secrets unset ORIGIN_AUTH_SECRET` で照合を止め、Transform Rule を直してから新しい値を置く。
 
+### Cloudflare の設定
+
+Cloudflare 側の設定はダッシュボードにあり、リポジトリには無い。
+変えたらここを直す。
+
+| 設定 | 値 |
+|---|---|
+| `stock` の A と AAAA | プロキシあり |
+| SSL/TLS の暗号化モード | Full (strict) |
+| Email Address Obfuscation、Rocket Loader | オフ。HTML を書き換え、CSP や Inertia のページのデータとぶつかるため |
+| Web Analytics | 登録しない |
+| Transform Rule | `X-Origin-Auth` を付ける（上の節） |
+
+WAF のルールは次の3つである。
+
+| 名前 | 種類 | 条件 | 動作 |
+|---|---|---|---|
+| `block-scanner-paths` | カスタムルール | パスが `/.env`、`/wp-login.php`、`/xmlrpc.php`、`/wp-admin`、`/phpmyadmin` のどれか、または `/.git` で始まる | Block |
+| `admin-japan-only` | カスタムルール | パスが `/admin` で始まり、国が日本以外 | Block |
+| `login-rate-limit` | レート制限 | パスが `/app/login` か `/admin/login` で、同じ IP アドレスから10秒間に5回を超える | 10秒間 Block |
+
+`/admin` 以下には Cloudflare Access も掛けている。
+許可するのは開発者のメールアドレスだけで、ログインの方法は One-time PIN、セッションは24時間である。
+Access のセッションが切れた後に管理画面で操作すると、Inertia の通信が Access のログイン画面へのリダイレクトを受けて失敗する。
+ページを再読み込みすれば、Access のログイン画面が出る。
+
 ### セキュリティヘッダ
 
 `SetSecurityHeaders` ミドルウェアが、レスポンスに次のヘッダを付ける。
