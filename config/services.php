@@ -39,6 +39,8 @@ return [
 
     // https://www.cloudflare.com/ips-v4 と https://www.cloudflare.com/ips-v6 の写し（2026-11-08 取得）
     'cloudflare' => [
+        // Cloudflare の Transform Rule が X-Origin-Auth に付ける値。空なら照合しない。
+        'origin_auth_secret' => env('ORIGIN_AUTH_SECRET'),
         'proxy_ips' => [
             '173.245.48.0/20',
             '103.21.244.0/22',

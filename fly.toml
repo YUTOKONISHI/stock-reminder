@@ -1,4 +1,4 @@
-# 秘密情報（APP_KEY、DB の接続情報、VAPID の鍵、Resend の API キー（MAIL_PASSWORD）、Tigris の接続情報、Turnstile のシークレットキー（TURNSTILE_SECRET_KEY））は fly secrets set で置く。
+# 秘密情報（APP_KEY、DB の接続情報、VAPID の鍵、Resend の API キー（MAIL_PASSWORD）、Tigris の接続情報、Turnstile のシークレットキー（TURNSTILE_SECRET_KEY）、Cloudflare からのリクエストに付く秘密の値（ORIGIN_AUTH_SECRET））は fly secrets set で置く。
 
 app = "stock-reminder"
 primary_region = "nrt"
