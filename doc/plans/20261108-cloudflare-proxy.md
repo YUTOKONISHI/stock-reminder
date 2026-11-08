@@ -114,3 +114,37 @@ WAF のルールで `/admin` へのアクセスを日本からだけに絞る、
 ## 文書
 
 `README.md` のインフラ構成の図と、`doc/design/non-functional.md` の IP アドレスの記述を、作業に合わせて直す。
+
+## 追記: 手順1から5の結果（2026-11-08）
+
+### 手順1から3
+
+PR #73 をデプロイした後、本番に偽の `X-Forwarded-For`、`Fly-Client-IP`、`X-Forwarded-Host` を付けて送った。
+リクエストログの `ip` は送り手の本当の IP アドレスになり、レスポンスに偽のホスト名は出なかった。
+`Fly-Client-IP` は Fly Proxy が上書きするので、送り手には偽れないことも分かった。
+
+### 手順4
+
+`fly certs setup` の出力に従い、次の2つのレコードを足した。
+
+- `_acme-challenge.stock` の CNAME（`stock.deployshelf.dev.3pow5gg.flydns.net` に向ける。プロキシは切る）
+- `_fly-ownership.stock` の TXT（値は `app-3pow5gg`）
+
+TXT は、出力に「CDN やプロキシを通すときは必要」と書かれていたので足した。
+`fly certs check` は通った。
+DNS-01 で実際に更新できるかは、次の自動更新まで分からない。
+
+### 手順5の画面の場所の訂正
+
+手順5に書いた画面の場所は、確かめずに書いたもので、今のダッシュボードとは違っていた。
+Cloudflare のドキュメントで確かめた場所は次のとおりである。
+
+- Email Address Obfuscation：Security → Settings。絞り込みの Client-side abuse の中にある
+- Rocket Loader：Speed → Settings → Content Optimization
+
+ダッシュボードを日本語表示にしていると、Rocket Loader は検索でも見つからず、「スピード」に当たるメニューも無かった。
+そこで、Rocket Loader と Web Analytics の自動設定は、画面で探すのをやめた。
+オレンジ色にした後で本番の HTML を取得し、Cloudflare が差し込んだスクリプトが無いかで判定する。
+Rocket Loader が動いていれば `<script>` の `type` が書き換えられ、Web Analytics が動いていれば `cloudflareinsights` の読み込みが現れる。
+
+Full (strict) と Email Address Obfuscation のオフは、設定を済ませた。
