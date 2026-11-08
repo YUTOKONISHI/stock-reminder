@@ -233,7 +233,7 @@ WAF のルールは次の3つである。
 | 名前 | 種類 | 条件 | 動作 |
 |---|---|---|---|
 | `block-scanner-paths` | カスタムルール | パスが `/.env`、`/wp-login.php`、`/xmlrpc.php`、`/wp-admin`、`/phpmyadmin` のどれか、または `/.git` で始まる | Block |
-| `admin-japan-only` | カスタムルール | パスが `/admin` で始まり、国が日本以外 | Block |
+| `japan-only` | カスタムルール | 国が日本以外で、Cloudflare が確かめたクローラ（既知のボット）でない | Block |
 | `login-rate-limit` | レート制限 | パスが `/app/login` か `/admin/login` で、同じ IP アドレスから10秒間に5回を超える | 10秒間 Block |
 
 `/admin` 以下には Cloudflare Access も掛けている。
