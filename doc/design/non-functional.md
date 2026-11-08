@@ -201,6 +201,20 @@ Inertia が `data-page` 属性にログイン中の利用者の props を埋め�
 `X-Forwarded-For` と `X-Forwarded-Host` は送り手が書けるので、送信元IPにも URL の生成にも使わない。
 Cloudflare の範囲は公開されている一覧の写しで、一覧が変わったら `config/services.php` を直す。
 
+### Cloudflare を通らないアクセス
+
+本番は Cloudflare のプロキシの後ろにあるが、`stock-reminder.fly.dev` や Fly.io の IP アドレスへ直接つなぐこともできる。
+これを `RequireOriginAuth` ミドルウェアで断る。
+`ResolveClientIp` の次に、全リクエストに掛けている。
+
+Cloudflare の Transform Rule が、`stock.deployshelf.dev` へのリクエストに `X-Origin-Auth` ヘッダを付ける。
+値は `ORIGIN_AUTH_SECRET`（本番は Fly の secrets）と同じで、一致しなければ 403 を返す。
+ヘルスチェックの `/up` は照合しない。
+`ORIGIN_AUTH_SECRET` が空のとき（ローカルとテスト）も照合しない。
+
+秘密の値を変えるときは、Transform Rule を先に新しい値へ変えると、`fly secrets set` が反映されるまでの間すべてのリクエストが断られる。
+変える間は一時的に `fly secrets unset ORIGIN_AUTH_SECRET` で照合を止め、Transform Rule を直してから新しい値を置く。
+
 ### セキュリティヘッダ
 
 `SetSecurityHeaders` ミドルウェアが、レスポンスに次のヘッダを付ける。

@@ -163,3 +163,42 @@ Web Analytics は、サイトの一覧に何も登録されていなかった。
 - 偽の `CF-Connecting-IP` を付けたリクエストは、Cloudflare が 403 で断り、アプリに届かない
 - HTML の `<script>` の `type` は書き換えられておらず、`cloudflareinsights` の読み込みも無い
 - ブラウザでログインでき、新規登録画面に Turnstile の枠が出る（開発者が確かめた）
+
+## 追記: Fly.io への直接のアクセスを塞ぐ（2026-11-08）
+
+「終わった後に決めること」は、塞ぐことにした。
+WAF を試すにあたり、ルールを迂回できる経路を残したくないため。
+
+**何が起きているか。**
+`stock-reminder.fly.dev` や Fly.io の IP アドレスへ直接つなぐと、Cloudflare を通らずにアプリへ届く。
+Cloudflare に置いたルールは、この経路では効かない。
+
+**どうするか。**
+Cloudflare にだけ、秘密の値を持たせる。
+Cloudflare の Transform Rule（リクエストのヘッダを書き換える機能。無料プランで10個まで）で、すべてのリクエストに `X-Origin-Auth: <秘密の値>` を付けさせる。
+アプリは、同じ値を `ORIGIN_AUTH_SECRET` として持ち、ヘッダの値が一致しないリクエストを 403 で断る。
+直接つなぐ人は秘密の値を知らないので、断られる。
+
+送り元が Cloudflare の IP アドレスかどうかで判定する案は採らなかった。
+他人も自分の Cloudflare アカウントを経由すれば、同じ IP アドレスから送れるため。
+
+Fly.io のヘルスチェック（`/up`）は Cloudflare を通らないので、照合しない。
+`ORIGIN_AUTH_SECRET` が空のとき（ローカルとテスト）も照合しない。
+
+### 本番への反映
+
+順番を守る。
+アプリが照合を始めたときに、Cloudflare がまだヘッダを付けていないと、すべてのリクエストが断られるため。
+
+1. 手元で `openssl rand -hex 32` を実行し、秘密の値を作る。チャットや PR には貼らない
+2. Cloudflare で Transform Rule を作る。Rules の Transform Rules で、リクエストヘッダを変更するルールを足す
+   - 条件：ホスト名が `stock.deployshelf.dev` と等しい
+   - 操作：ヘッダ `X-Origin-Auth` を、1の値に設定する（Set static）
+3. `fly secrets set ORIGIN_AUTH_SECRET=<1の値> -a stock-reminder` を実行する。マシンが再起動するが、今のコードは照合しないので、この時点では何も変わらない
+4. PR をマージしてデプロイする
+
+デプロイ後、次を確かめる。
+
+- `https://stock.deployshelf.dev/` は今までどおり開ける
+- `https://stock-reminder.fly.dev/` は 403 になる
+- `fly status -a stock-reminder` でヘルスチェックが通っている
