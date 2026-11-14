@@ -21,7 +21,7 @@
 | 層 | 採用 |
 |---|---|
 | サーバ | PHP 8.4、Laravel 13 |
-| 画面 | React 19、TypeScript、Inertia 3、Tailwind CSS 4 |
+| フロントエンド | React 19、TypeScript、Inertia 3、Tailwind CSS 4 |
 | DB | PostgreSQL 18 |
 | 認証 | Laravel Fortify |
 | 開発環境 | Laravel Sail（Docker） |
