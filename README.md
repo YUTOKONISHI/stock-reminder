@@ -20,7 +20,7 @@
 
 | 層 | 採用 |
 |---|---|
-| サーバ | PHP 8.4、Laravel 13 |
+| バックエンド | PHP 8.4、Laravel 13 |
 | フロントエンド | React 19、TypeScript、Inertia 3、Tailwind CSS 4 |
 | DB | PostgreSQL 18 |
 | 認証 | Laravel Fortify |
