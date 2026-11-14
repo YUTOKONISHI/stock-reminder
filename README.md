@@ -20,8 +20,8 @@
 
 | 層 | 採用 |
 |---|---|
-| サーバ | PHP 8.4、Laravel 13 |
-| 画面 | React 19、TypeScript、Inertia 3、Tailwind CSS 4 |
+| バックエンド | PHP 8.4、Laravel 13 |
+| フロントエンド | React 19、TypeScript、Inertia 3、Tailwind CSS 4 |
 | DB | PostgreSQL 18 |
 | 認証 | Laravel Fortify |
 | 開発環境 | Laravel Sail（Docker） |
@@ -46,7 +46,7 @@ flowchart LR
     subgraph fly["Fly.io（東京）"]
         proxy["Fly Proxy<br>HTTPS"]
         app["app<br>FrankenPHP + Laravel"]
-        scheduler["scheduler<br>毎朝9時に通知、4時にバックアップ"]
+        scheduler["scheduler<br>9〜12時に通知、3時に古いデータを削除、4時にバックアップ"]
         db[("db<br>PostgreSQL 18")]
         tigris[("Tigris<br>バックアップ")]
     end
@@ -54,13 +54,17 @@ flowchart LR
     resend["Resend<br>メール送信"]
     push["ブラウザの Push サービス"]
     gha["GitHub Actions"]
+    admin["管理者"]
 
     user -->|名前解決| dns
     user -->|HTTPS| cdn -->|HTTPS| proxy --> app --> db
     scheduler --> db
     scheduler -->|pg_dump| tigris
     scheduler -->|Web Push| push --> user
-    app -->|SMTP| resend -->|パスワード再設定| user
+    app -->|SMTP| resend
+    scheduler -->|SMTP| resend
+    resend -->|登録確認、パスワード再設定など| user
+    resend -->|通知の失敗、2段階認証の解除依頼| admin
     gha -->|tests が通ったら deploy| fly
 ```
 
@@ -70,7 +74,7 @@ flowchart LR
 
 - **ストック管理**：商品ごとに消費日数とストック数を登録する。消費日数の初期値は世帯人数から決まる
 - **ダッシュボード**：購入予定日をカレンダーと一覧で出す。購入ボタンで次回購入予定日を進める
-- **Push通知**：毎朝9時に、購入予定日を迎えたものを知らせる
+- **Push通知**：毎朝9時に、購入予定日を迎えたものと過ぎたものを知らせる。送れなかった分は12時まで毎時送り直す
 - **管理画面**：商品マスタとカテゴリのCRUD
 
 ## 非機能一覧
